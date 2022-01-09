@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 22:32:49
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 22:41:03
 _updateball.asm						     Page 1 - 1
 
 
@@ -27,11 +27,11 @@ _updateball.asm						     Page 1 - 1
 			      C     playTopEdgeOffset: dword,			;PLAY_T_EDGE_OFFSET
 			      C 	playLeftEdgeOffset: dword,			;PLAY_L_EDGE_OFFSET
 			      C     boardRowLength: dword,				;BOARD_R_LENGTH
-			      C 	boardsinBetween: dword,					;BOARD_BETWEEN
-			      C 	borderWidth: dword,
+			      C 	boardsinBetween: dword,				;BOARD_BETWEEN
+			      C 	boardColumnLength: dword,					;BOARD_C_LENGTH
 			      C 	space: ptr byte
 			      C 
-			      C DrawInitialPaddles proto,
+			      C DrawFirstTwoPaddles proto,
 			      C     color: dword,
 			      C 	p1X: PTR dword,						; x®y¼Ð
 			      C 	p1Y: PTR dword,						; y®y¼Ð
@@ -64,7 +64,7 @@ _updateball.asm						     Page 1 - 1
 			      C 	playLeftEdgeOffset: dword,
 			      C     boardRowLength: dword,
 			      C 	boardsinBetween: dword,
-			      C 	borderWidth: dword,
+			      C 	boardColumnLength: dword,
 			      C 	space: ptr byte,
 			      C     p1score: ptr dword,
 			      C     p2score: ptr dword,
@@ -316,7 +316,7 @@ _updateball.asm						     Page 1 - 1
 				end
 					
 	
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 22:32:49
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 22:41:03
 _updateball.asm						     Symbols 2 - 1
 
 
@@ -428,8 +428,8 @@ CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawBall . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DrawFirstTwoPaddles  . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawFrame  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawInitialPaddles . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawScore  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL

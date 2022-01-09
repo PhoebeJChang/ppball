@@ -1,9 +1,9 @@
-; (_DrawInitialPaddles.asm)
+; (_DrawFirstTwoPaddles.asm)
 
 include ppball.inc
 
 .code 
-DrawInitialPaddles proc,
+DrawFirstTwoPaddles proc,
      color: dword,
 	p1X: PTR dword,						; x®y¼Ð
 	p1Y: PTR dword,						; y®y¼Ð
@@ -76,5 +76,5 @@ initialDrawP2:
      pushad
 
      ret
-DrawInitialPaddles endp
+DrawFirstTwoPaddles endp
 end

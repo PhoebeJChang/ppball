@@ -21,7 +21,7 @@
     <MASM Include="_CheckMovement.asm">
       <Filter>Header Files</Filter>
     </MASM>
-    <MASM Include="_DrawInitialPaddles.asm">
+    <MASM Include="_DrawFirstTwoPaddles.asm">
       <Filter>Header Files</Filter>
     </MASM>
     <MASM Include="_chill.asm">
