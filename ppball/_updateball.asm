@@ -8,8 +8,8 @@ UpdateBall proc,
 	xRun: ptr dword,
 	yRise: ptr dword,
 	space: ptr byte,
-	boardTopOffset: dword,
-	boardHeight: dword,
+	playTopEdgeOffset: dword,
+	boardsinBetween: dword,
     leftPaddleX: dword,
     leftPaddleY: dword,
     rightPaddleX: dword,
@@ -36,7 +36,7 @@ UpdateBall proc,
 	cmp [eax], ebx
 	ja CollisionTesting
 Reset:
-	mov eax, boardTopOffset
+	mov eax, playTopEdgeOffset
 	add eax, 2
 	mov ebx, leftPaddleX
 	add ebx, 2
@@ -56,8 +56,8 @@ CollisionTesting:
     ; check whether the ball is touching either frame
     ; bottom frame
 	mov eax, [yCoordBall]
-	mov ebx, boardTopOffset
-	add ebx, boardHeight
+	mov ebx, playTopEdgeOffset
+	add ebx, boardsinBetween
     dec ebx
 	cmp [eax], ebx
 	jb NotTouchingBottom
@@ -67,7 +67,7 @@ CollisionTesting:
 NotTouchingBottom:
 	; top frame
     mov eax, [yCoordBall]
-	mov ebx, boardTopOffset
+	mov ebx, playTopEdgeOffset
 	inc ebx
 	cmp [eax], ebx
 	ja NotTouchingTop

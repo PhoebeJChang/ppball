@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 19:58:21
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 22:32:49
 _updateball.asm						     Page 1 - 1
 
 
@@ -23,11 +23,11 @@ _updateball.asm						     Page 1 - 1
 			      C 
 			      C 
 			      C DrawFrame proto,
-			      C     color: dword,
-			      C     boardTopOffset: dword,
-			      C 	boardLeftEdgeOffset: dword,
-			      C     boardWidth: dword,
-			      C 	boardHeight: dword,
+			      C     color: dword,						;GUI_COLOR
+			      C     playTopEdgeOffset: dword,			;PLAY_T_EDGE_OFFSET
+			      C 	playLeftEdgeOffset: dword,			;PLAY_L_EDGE_OFFSET
+			      C     boardRowLength: dword,				;BOARD_R_LENGTH
+			      C 	boardsinBetween: dword,					;BOARD_BETWEEN
 			      C 	borderWidth: dword,
 			      C 	space: ptr byte
 			      C 
@@ -60,10 +60,10 @@ _updateball.asm						     Page 1 - 1
 			      C DrawScore proto,
 			      C     textcolor: dword,
 			      C     color: dword,
-			      C 	boardTopOffset: dword,
-			      C 	boardLeftEdgeOffset: dword,
-			      C     boardWidth: dword,
-			      C 	boardHeight: dword,
+			      C 	playTopEdgeOffset: dword,
+			      C 	playLeftEdgeOffset: dword,
+			      C     boardRowLength: dword,
+			      C 	boardsinBetween: dword,
 			      C 	borderWidth: dword,
 			      C 	space: ptr byte,
 			      C     p1score: ptr dword,
@@ -78,8 +78,8 @@ _updateball.asm						     Page 1 - 1
 			      C     xRun: ptr dword,
 			      C 	yRise: ptr dword,
 			      C 	space: ptr byte,
-			      C 	boardTopOffset: dword,
-			      C 	boardHeight: dword,
+			      C 	playTopEdgeOffset: dword,
+			      C 	boardsinBetween: dword,
 			      C     leftPaddleX: dword,
 			      C     leftPaddleY: dword,
 			      C     rightPaddleX: dword,
@@ -106,8 +106,8 @@ _updateball.asm						     Page 1 - 1
 					xRun: ptr dword,
 					yRise: ptr dword,
 					space: ptr byte,
-					boardTopOffset: dword,
-					boardHeight: dword,
+					playTopEdgeOffset: dword,
+					boardsinBetween: dword,
 				    leftPaddleX: dword,
 				    leftPaddleY: dword,
 				    rightPaddleX: dword,
@@ -134,7 +134,7 @@ _updateball.asm						     Page 1 - 1
  00000017  39 18			cmp [eax], ebx
  00000019  77 24			ja CollisionTesting
  0000001B			Reset:
- 0000001B  8B 45 20			mov eax, boardTopOffset
+ 0000001B  8B 45 20			mov eax, playTopEdgeOffset
  0000001E  83 C0 02			add eax, 2
  00000021  8B 5D 28			mov ebx, leftPaddleX
  00000024  83 C3 02			add ebx, 2
@@ -154,8 +154,8 @@ _updateball.asm						     Page 1 - 1
 				    ; check whether the ball is touching either frame
 				    ; bottom frame
  00000054  8B 45 0C			mov eax, [yCoordBall]
- 00000057  8B 5D 20			mov ebx, boardTopOffset
- 0000005A  03 5D 24			add ebx, boardHeight
+ 00000057  8B 5D 20			mov ebx, playTopEdgeOffset
+ 0000005A  03 5D 24			add ebx, boardsinBetween
  0000005D  4B			    dec ebx
  0000005E  39 18			cmp [eax], ebx
  00000060  72 05			jb NotTouchingBottom
@@ -165,7 +165,7 @@ _updateball.asm						     Page 1 - 1
  00000067			NotTouchingBottom:
 					; top frame
  00000067  8B 45 0C		    mov eax, [yCoordBall]
- 0000006A  8B 5D 20			mov ebx, boardTopOffset
+ 0000006A  8B 5D 20			mov ebx, playTopEdgeOffset
  0000006D  43				inc ebx
  0000006E  39 18			cmp [eax], ebx
  00000070  77 05			ja NotTouchingTop
@@ -316,7 +316,7 @@ _updateball.asm						     Page 1 - 1
 				end
 					
 	
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 19:58:21
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 22:32:49
 _updateball.asm						     Symbols 2 - 1
 
 
@@ -514,8 +514,8 @@ UpdateBall . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000170 Public 
   xRun . . . . . . . . . . . . .	DWord	 bp + 00000014
   yRise  . . . . . . . . . . . .	DWord	 bp + 00000018
   space  . . . . . . . . . . . .	DWord	 bp + 0000001C
-  boardTopOffset . . . . . . . .	DWord	 bp + 00000020
-  boardHeight  . . . . . . . . .	DWord	 bp + 00000024
+  playTopEdgeOffset  . . . . . .	DWord	 bp + 00000020
+  boardsinBetween  . . . . . . .	DWord	 bp + 00000024
   leftPaddleX  . . . . . . . . .	DWord	 bp + 00000028
   leftPaddleY  . . . . . . . . .	DWord	 bp + 0000002C
   rightPaddleX . . . . . . . . .	DWord	 bp + 00000030

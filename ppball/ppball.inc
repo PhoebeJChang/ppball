@@ -1,12 +1,12 @@
 include Irvine32.inc
 
 DrawFrame proto,
-    color: dword,
-    boardTopOffset: dword,
-	boardLeftEdgeOffset: dword,
-    boardWidth: dword,
-	boardHeight: dword,
-	borderWidth: dword,
+    color: dword,						;GUI_COLOR
+    playTopEdgeOffset: dword,			;PLAY_T_EDGE_OFFSET
+	playLeftEdgeOffset: dword,			;PLAY_L_EDGE_OFFSET
+    boardRowLength: dword,				;BOARD_R_LENGTH
+	boardsinBetween: dword,				;BOARD_BETWEEN
+	boardColumnLength: dword,					;BOARD_C_LENGTH
 	space: ptr byte
 
 DrawInitialPaddles proto,
@@ -38,11 +38,11 @@ DrawBall proto,
 DrawScore proto,
     textcolor: dword,
     color: dword,
-	boardTopOffset: dword,
-	boardLeftEdgeOffset: dword,
-    boardWidth: dword,
-	boardHeight: dword,
-	borderWidth: dword,
+	playTopEdgeOffset: dword,
+	playLeftEdgeOffset: dword,
+    boardRowLength: dword,
+	boardsinBetween: dword,
+	boardColumnLength: dword,
 	space: ptr byte,
     p1score: ptr dword,
     p2score: ptr dword,
@@ -56,8 +56,8 @@ DrawScore proto,
     xRun: ptr dword,
 	yRise: ptr dword,
 	space: ptr byte,
-	boardTopOffset: dword,
-	boardHeight: dword,
+	playTopEdgeOffset: dword,
+	boardsinBetween: dword,
     leftPaddleX: dword,
     leftPaddleY: dword,
     rightPaddleX: dword,

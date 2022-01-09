@@ -27,7 +27,7 @@ initialDrawP1:
 
      ;mov al, '0'
      ;call WriteChar
-     mov eax, white+(lightCyan*16)
+     mov eax, color
      call SetTextColor
 
      push edx

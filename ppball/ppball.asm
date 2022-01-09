@@ -1,47 +1,44 @@
 include ppball.inc
 
-; game board and frame data
-BOARD_TOP_OFFSET equ 5d
-BOARD_LEFT_EDGE_OFFSET equ 15d
-BOARD_WIDTH equ 70d
-BOARD_HEIGHT equ 20d
-BORDER_WIDTH equ 1d
-GUI_TEXT_COLOR equ (white)
-GUI_COLOR equ (blue * 16)
-PADDLE_COLOR equ (white * 16)
-BALL_COLOR equ (white * 16)
+; 框架大小和顏色宣告
+PLAY_T_EDGE_OFFSET equ 5d
+PLAY_L_EDGE_OFFSET equ 20d
+BOARD_R_LENGTH equ 80d                      ;長row
+BOARD_C_LENGTH equ 1d                       ;寬cloumn
+BOARD_BETWEEN equ 25d                       ;板子間距離
 
-FRAME_RATE equ 50d
+GUI_TEXT_COLOR equ (white)
+GUI_COLOR equ (lightGray * 16)              ;上下板子顏色
+PADDLE_COLOR equ (lightCyan * 16)           ;左右paddle color
+BALL_COLOR equ (yellow * 16)
+
+FRAME_RATE equ 80d                          ;速度
 
 .data
-welcome byte "hey", 0
-gameSpeed dword 1h
+;menu byte "hellooooooooooooooo", 0
 
 ; for passing into prototypes
-roomUpperBorder dword (BOARD_TOP_OFFSET)
-roomLowerBorder dword (BOARD_TOP_OFFSET + BOARD_HEIGHT)
+roomUpperBorder dword (PLAY_T_EDGE_OFFSET)
+roomLowerBorder dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
 
 ; ball and paddle tracking
-xCoordBall dword BOARD_LEFT_EDGE_OFFSET
-yCoordBall dword BOARD_TOP_OFFSET + 2
+xCoordBall dword PLAY_L_EDGE_OFFSET + 30
+yCoordBall dword PLAY_T_EDGE_OFFSET + 2
 xRun dword 2
 yRise dword 1
 
 ; character
 space byte " ", 0
 
-player1X dword (BOARD_LEFT_EDGE_OFFSET)
-player1Y dword (BOARD_TOP_OFFSET + (BOARD_HEIGHT / 2))
-player2X dword (BOARD_LEFT_EDGE_OFFSET + BOARD_WIDTH - 1)
-player2Y dword (BOARD_TOP_OFFSET + (BOARD_HEIGHT / 2))
+player1X dword (PLAY_L_EDGE_OFFSET)                 ;設定p1 paddle 位置在左側邊邊
+player1Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2))
+player2X dword (PLAY_L_EDGE_OFFSET + BOARD_R_LENGTH - 1)
+player2Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2))
 
 paddleHeight dword 4h
 
 ballDirection dword 90				; in degrees? or slope? 
 
-playerColor dword (lightBlue * 16)
-ballColor dword (lightBlue * 16)
-guiColor dword (blue * 16)
 
 ; gui information
 p1scoreString byte "Player 1 score:", 0
@@ -53,14 +50,14 @@ p2score dword 0
 main proc
      mov eax, 0
      call SetTextColor
-     invoke DrawFrame, GUI_COLOR, BOARD_TOP_OFFSET, BOARD_LEFT_EDGE_OFFSET, BOARD_WIDTH, BOARD_HEIGHT, BORDER_WIDTH, addr space
+     invoke DrawFrame, GUI_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
 
      invoke DrawInitialPaddles, PADDLE_COLOR, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr space
 
      mov ecx, 1
 MainLoop:
-	 invoke UpdateBall, addr xCoordBall, addr yCoordBall, BALL_COLOR, addr xRun, addr yRise, addr space, BOARD_TOP_OFFSET, 
-                        BOARD_HEIGHT, player1X, player1Y, player2X, player2Y, paddleHeight
+	 invoke UpdateBall, addr xCoordBall, addr yCoordBall, BALL_COLOR, addr xRun, addr yRise, addr space, PLAY_T_EDGE_OFFSET, 
+                        BOARD_BETWEEN, player1X, player1Y, player2X, player2Y, paddleHeight
      inc ecx ; increment ecx to keep the loop going...when the ball goes out of bounds, set ecx to 0 so the inner loop can finish
      invoke Chill, FRAME_RATE
 

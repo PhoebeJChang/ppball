@@ -92,7 +92,7 @@ CheckDownKeyP1:
      mov eax, p1coordy
      mov dh, byte PTR [eax]                  ; y coordinate
      call Gotoxy
-     mov eax, white+(lightCyan*16)                    ; bg_color = color
+     mov eax, color                   ; bg_color = color
      call SetTextColor
 
      mov edx, OFFSET space
