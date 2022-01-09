@@ -1,5 +1,4 @@
 ; (_drawframe.asm)
-
 include ppball.inc
 
 .code

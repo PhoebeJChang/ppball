@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 17:58:31
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 18:19:38
 _DrawInitialPaddles.asm					     Page 1 - 1
 
 
@@ -108,7 +108,7 @@ _DrawInitialPaddles.asm					     Page 1 - 1
 					p2X: PTR dword,						; x座標
 					p2Y: PTR dword,						; y座標
 					paddleHeight: dword,                        ;paddle 高度
-				     space: ptr byte
+				     space: ptr byte 
 				     
  00000003  60			     pushad 
 				     ; p1 paddle 初始
@@ -176,7 +176,7 @@ _DrawInitialPaddles.asm					     Page 1 - 1
 				     ret
  0000007F			DrawInitialPaddles endp
 				end
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 17:58:31
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 18:19:38
 _DrawInitialPaddles.asm					     Symbols 2 - 1
 
 
