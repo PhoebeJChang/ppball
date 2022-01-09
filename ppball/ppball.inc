@@ -11,11 +11,11 @@ DrawFrame proto,
 
 DrawInitialPaddles proto,
     color: dword,
-	p1coordx: PTR dword,						; x-coord
-	p1coordy: PTR dword,						; y-coord
-	p2coordx: PTR dword,						; x-coord
-	p2coordy: PTR dword,						; y-coord
-	paddleHeight: dword,
+	p1X: PTR dword,						; x座標
+	p1Y: PTR dword,						; y座標
+	p2X: PTR dword,						; x座標
+	p2Y: PTR dword,						; y座標
+	paddleHeight: dword,                        ;paddle 高度
      space: ptr byte
 
 CheckMovement proto,

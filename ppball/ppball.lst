@@ -1,6 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 16:35:41
-_updateball.asm						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 17:58:31
+_DrawInitialPaddles.asm					     Page 1 - 1
 
+
+				; (_DrawInitialPaddles.asm)
 
 				include ppball.inc
 			      C include Irvine32.inc
@@ -33,11 +35,11 @@ _updateball.asm						     Page 1 - 1
 			      C 
 			      C DrawInitialPaddles proto,
 			      C     color: dword,
-			      C 	p1coordx: PTR dword,						; x-coord
-			      C 	p1coordy: PTR dword,						; y-coord
-			      C 	p2coordx: PTR dword,						; x-coord
-			      C 	p2coordy: PTR dword,						; y-coord
-			      C 	paddleHeight: dword,
+			      C 	p1X: PTR dword,						; x座標
+			      C 	p1Y: PTR dword,						; y座標
+			      C 	p2X: PTR dword,						; x座標
+			      C 	p2Y: PTR dword,						; y座標
+			      C 	paddleHeight: dword,                        ;paddle 高度
 			      C      space: ptr byte
 			      C 
 			      C CheckMovement proto,
@@ -95,229 +97,87 @@ _updateball.asm						     Page 1 - 1
 			      C 	yRise: ptr dword
 			      C  
 			      C Chill proto,
-			      C      duration: dword
+			      C      timedu: dword
 			      C 
 
- 00000000			.code
- 00000000			UpdateBall proc,
-					xCoordBall: ptr dword,
-					yCoordBall: ptr dword,
-				    color: dword,
-					xRun: ptr dword,
-					yRise: ptr dword,
-					space: ptr byte,
-					boardTopOffset: dword,
-					boardHeight: dword,
-				    leftPaddleX: dword,
-				    leftPaddleY: dword,
-				    rightPaddleX: dword,
-				    rightPaddleY: dword,
-					paddleHeight: dword
-					
-					; xCoordBall - the current absolute x coordinate of the ball 
-					; yCoordBall - the current absolute y coordinate of the ball
-					; xRun - the x (horizontal) component of the ball's velocity
-					; yRise - the y (vertical) component of the ball's velocity
-						; note : a positive yRise value translates to downward motion of the ball on the consoloe and vice-versa
-					
-					; save the state of the registers from the time of the function call
- 00000003  60				pushad
-					
-					; if the ball goes outside the board, reset the ball
- 00000004  8B 45 08			mov eax, xCoordBall
- 00000007  8B 5D 30			mov ebx, rightPaddleX
- 0000000A  83 C3 14			add ebx, 20
- 0000000D  39 18			cmp [eax], ebx
- 0000000F  77 0A			ja Reset
- 00000011  8B 5D 28			mov ebx, leftPaddleX
- 00000014  83 EB 05			sub ebx, 5
- 00000017  39 18			cmp [eax], ebx
- 00000019  77 24			ja CollisionTesting
- 0000001B			Reset:
- 0000001B  8B 45 20			mov eax, boardTopOffset
- 0000001E  83 C0 02			add eax, 2
- 00000021  8B 5D 28			mov ebx, leftPaddleX
- 00000024  83 C3 02			add ebx, 2
-					invoke ResetBall, xCoordBall, yCoordBall, ebx, eax, xRun, yRise
- 0000003A  E9 0000012C			jmp Finish
-					
- 0000003F			CollisionTesting:
-				    ; if the ball is beyond the paddles, let it go checking that here
- 0000003F  8B 45 08		    mov eax, xCoordBall
- 00000042  8B 5D 30			mov ebx, rightPaddleX
- 00000045  39 18			cmp [eax], ebx
- 00000047  0F 87 00000086		ja UpdateCoords
- 0000004D  8B 5D 28			mov ebx, leftPaddleX
- 00000050  39 18			cmp [eax], ebx
- 00000052  72 7F			jb UpdateCoords
+ 00000000			.code 
+ 00000000			DrawInitialPaddles proc,
+				     color: dword,
+					p1X: PTR dword,						; x座標
+					p1Y: PTR dword,						; y座標
+					p2X: PTR dword,						; x座標
+					p2Y: PTR dword,						; y座標
+					paddleHeight: dword,                        ;paddle 高度
+				     space: ptr byte
+				     
+ 00000003  60			     pushad 
+				     ; p1 paddle 初始
+				     ;ptr 宣告的記得加[]
 
-				    ; check whether the ball is touching either frame
-				    ; bottom frame
- 00000054  8B 45 0C			mov eax, [yCoordBall]
- 00000057  8B 5D 20			mov ebx, boardTopOffset
- 0000005A  03 5D 24			add ebx, boardHeight
- 0000005D  4B			    dec ebx
- 0000005E  39 18			cmp [eax], ebx
- 00000060  72 05			jb NotTouchingBottom
- 00000062  8B 45 18			mov eax, [yRise]
- 00000065  F7 18			neg dword ptr [eax]
-					
- 00000067			NotTouchingBottom:
-					; top frame
- 00000067  8B 45 0C		    mov eax, [yCoordBall]
- 0000006A  8B 5D 20			mov ebx, boardTopOffset
- 0000006D  43				inc ebx
- 0000006E  39 18			cmp [eax], ebx
- 00000070  77 05			ja NotTouchingTop
- 00000072  8B 45 18			mov eax, [yRise]
- 00000075  F7 18			neg dword ptr [eax]
-					
- 00000077			NotTouchingTop:
-					; check whether the ball is touching either paddle
-					; right paddle
-					; first decide whether the ball's x-value is equal to the right paddle's x-value
- 00000077  8B 45 30			mov eax, rightPaddleX
- 0000007A  8B D8			mov ebx, eax
- 0000007C  4B				dec ebx
- 0000007D  8B 45 08			mov eax, [xCoordBall]
- 00000080  39 18			cmp [eax], ebx
- 00000082  72 20			jb NotTouchingRightPaddle
-					; ball is potentially touching the right paddle - now check whether the ball's y-value is within the paddle's y-range
-					; ball is not touching if it is below the paddle - checking that here
- 00000084  8B 45 34			mov eax, rightPaddleY
- 00000087  8B D8			mov ebx, eax
- 00000089  8B 45 0C			mov eax, [yCoordBall]
- 0000008C  39 18			cmp [eax], ebx
- 0000008E  77 14			ja NotTouchingRightPaddle
-					; ball is not touching if it is above the paddle - checking that here
- 00000090  8B 45 34			mov eax, rightPaddleY
- 00000093  8B D8			mov ebx, eax
- 00000095  2B 5D 38			sub ebx, paddleHeight
- 00000098  8B 45 0C			mov eax, [yCoordBall]
- 0000009B  39 18			cmp [eax], ebx
- 0000009D  72 05			jb NotTouchingRightPaddle
- 0000009F  8B 45 14			mov eax, [xRun]
- 000000A2  F7 18			neg dword ptr [eax]
-					
- 000000A4			NotTouchingRightPaddle:
-					; now check the left paddle
-					; first decide whether the ball's x-value is equal to the left paddle's x-value
- 000000A4  8B 45 28			mov eax, leftPaddleX
- 000000A7  8B D8			mov ebx, eax
- 000000A9  83 C3 02		    add ebx, 2
- 000000AC  8B 45 08			mov eax, [xCoordBall]
- 000000AF  39 18			cmp [eax], ebx
- 000000B1  77 20			ja NotTouchingLeftPaddle
-					; ball is potentially touching the left paddle - now check whether the ball's y-value is within the paddle's y-range
-					; ball is not touching if it is below the paddle - checking that here
- 000000B3  8B 45 2C			mov eax, leftPaddleY
- 000000B6  8B D8			mov ebx, eax
- 000000B8  8B 45 0C			mov eax, [yCoordBall]
- 000000BB  39 18			cmp [eax], ebx
- 000000BD  77 14			ja NotTouchingLeftPaddle
-					; ball is not touching if it is above the paddle - checking that here
- 000000BF  8B 45 2C			mov eax, leftPaddleY
- 000000C2  8B D8			mov ebx, eax
- 000000C4  2B 5D 38			sub ebx, paddleHeight
- 000000C7  8B 45 0C			mov eax, [yCoordBall]
- 000000CA  39 18			cmp [eax], ebx
- 000000CC  72 05			jb NotTouchingLeftPaddle
- 000000CE  8B 45 14			mov eax, [xRun]
- 000000D1  F7 18			neg dword ptr [eax]
-					
- 000000D3			NotTouchingLeftPaddle:
- 000000D3			UpdateCoords:
-					; update the x- and y-coordinates of the ball
-					; x
- 000000D3  8B 45 14			mov eax, [xRun]
- 000000D6  8B 18		    mov ebx, [eax]
- 000000D8  8B 45 08		    mov eax, [xCoordBall]
- 000000DB  03 18		    add ebx, [eax]
- 000000DD  89 18			mov [eax], ebx
-					; y
- 000000DF  8B 45 18			mov eax, [yRise]
- 000000E2  8B 18			mov ebx, [eax]
- 000000E4  8B 45 0C			mov eax, [yCoordBall]
- 000000E7  03 18			add ebx, [eax]
- 000000E9  89 18			mov [eax], ebx
-					
-					; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
- 000000EB  8B 5D 08			mov ebx, [xCoordBall]
- 000000EE  8A 13			mov dl, byte ptr [ebx]
- 000000F0  8B 5D 0C			mov ebx, [yCoordBall]
- 000000F3  8A 33			mov dh, byte ptr [ebx]
- 000000F5  E8 00000000 E		call Gotoxy
-					
-					; change the fill color to white to represent the ball with a white-filled space
- 000000FA  8B 45 10			mov eax, color
- 000000FD  E8 00000000 E		call SetTextColor
-					
-					; print a space character to print the ball as a white space
- 00000102  8B 55 1C			mov edx, space
- 00000105  E8 00000000 E		call WriteString
-					
-					; now set the text background color back to black like a friend
- 0000010A  B8 00000000			mov eax, black * 16
- 0000010F  E8 00000000 E		call SetTextColor
+ 00000004  8B 45 0C		     mov eax, [p1X]
+ 00000007  8A 10		     mov dl, byte PTR [eax]
+ 00000009  8B 45 10		     mov eax, [p1Y]
+ 0000000C  8A 30		     mov dh, byte PTR [eax]
+ 0000000E  8B 45 1C		     mov eax, [paddleHeight]
+ 00000011  8B 08		     mov ecx, [eax]
+ 00000013			initialDrawP1:
+ 00000013  E8 00000000 E	     call Gotoxy
 
-				    ; now erase the ball's shadow from its previous location
-				    ; go to the ball's previous position
-					; set x-coordinate back to its original value
- 00000114  8B 45 08		    mov eax, [xCoordBall]
- 00000117  8B 18		    mov ebx, [eax]
- 00000119  8B 45 14		    mov eax, [xRun]
- 0000011C  2B 18			sub ebx, [eax]
-				    ; now store the (original) x-coordinate value in xCoordBall
- 0000011E  8B 45 08		    mov eax, [xCoordBall]
- 00000121  89 18		    mov [eax], ebx
+				     ;mov al, '0'
+				     ;call WriteChar
+ 00000018  B8 000000BF		     mov eax, white+(lightCyan*16)
+ 0000001D  E8 00000000 E	     call SetTextColor
 
-					; set y-coordinate back to its original value
- 00000123  8B 45 0C		    mov eax, [yCoordBall]
- 00000126  8B 18			mov ebx, [eax]
- 00000128  8B 45 18			mov eax, [yRise]
- 0000012B  2B 18			sub ebx, [eax]
- 0000012D  8B 45 0C			mov eax, [yCoordBall]
- 00000130  89 18		    mov [eax], ebx
+ 00000022  52			     push edx
+ 00000023  8B 55 20		     mov edx, space
+ 00000026  E8 00000000 E	     call WriteString
+ 0000002B  5A			     pop edx
+ 0000002C  FE CE		     dec dh
+ 0000002E  E2 E3		     loop initialDrawP1
 
-				    ; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
- 00000132  8B 5D 08		    mov ebx, [xCoordBall]
- 00000135  8A 13			mov dl, [ebx]
- 00000137  8B 5D 0C			mov ebx, [yCoordBall]
- 0000013A  8A 33			mov dh, [ebx]
- 0000013C  E8 00000000 E		call Gotoxy
-					
-					; now print a space with a black background to remove the ball's shadow
- 00000141  8B 55 1C			mov edx, space
- 00000144  E8 00000000 E		call WriteString
-					
-					; now re-update xCoordBall and yCoordBall with their new values
-					; x
- 00000149  8B 45 14			mov eax, [xRun]
- 0000014C  8B 18		    mov ebx, [eax]
- 0000014E  8B 45 08		    mov eax, [xCoordBall]
- 00000151  03 18		    add ebx, [eax]
- 00000153  89 18			mov [eax], ebx
-					; y
- 00000155  8B 45 18			mov eax, [yRise]
- 00000158  8B 18			mov ebx, [eax]
- 0000015A  8B 45 0C			mov eax, [yCoordBall]
- 0000015D  03 18			add ebx, [eax]
- 0000015F  89 18			mov [eax], ebx
-					
-				    ; move the cursor back to 0 to get it out of the gamespace
- 00000161  BA 00000000		    mov edx, 0
- 00000166  E8 00000000 E	    call Gotoxy
- 0000016B			Finish:
-					; restore the state of the registers from the time of the function call
- 0000016B  61				popad
-					ret
+ 00000030  B8 00000000		     mov eax, 0
+ 00000035  E8 00000000 E	     call SetTextColor
+ 0000003A  61			     popad
 
- 00000170			UpdateBall endp
+				     ; 結束p1
+
+				     ;  p2 paddle 初始
+ 0000003B  60			     pushad
+ 0000003C  8B 45 14		     mov eax, [p2X]
+ 0000003F  8A 10		     mov dl, byte PTR [eax]
+ 00000041  8B 45 18		     mov eax, [p2Y]
+ 00000044  8A 30		     mov dh, byte PTR [eax]
+ 00000046  8B 45 1C		     mov eax, [paddleHeight]
+ 00000049  8B 08		     mov ecx, [eax]
+ 0000004B			initialDrawP2:
+ 0000004B  E8 00000000 E	     call Gotoxy
+ 00000050  8B 45 08		     mov eax, color
+ 00000053  E8 00000000 E	     call SetTextColor
+
+ 00000058  52			     push edx
+ 00000059  8B 55 20		     mov edx, space
+ 0000005C  E8 00000000 E	     call WriteString
+ 00000061  5A			     pop edx
+ 00000062  FE CE		     dec dh
+ 00000064  E2 E5		     loop initialDrawP2
+
+ 00000066  B8 00000000		     mov eax, 0
+ 0000006B  E8 00000000 E	     call SetTextColor
+ 00000070  61			     popad
+
+				     ; 結束p2
+
+ 00000071  B2 00		     mov dl, 0
+ 00000073  B6 00		     mov dh, 0
+ 00000075  E8 00000000 E	     call Gotoxy
+				     
+ 0000007A  60			     pushad
+
+				     ret
+ 0000007F			DrawInitialPaddles endp
 				end
-					
-	
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 16:35:41
-_updateball.asm						     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 17:58:31
+_DrawInitialPaddles.asm					     Symbols 2 - 1
 
 
 
@@ -411,7 +271,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000170 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000007F Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -429,7 +289,16 @@ Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawBall . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawFrame  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawInitialPaddles . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DrawInitialPaddles . . . . . . .	P Near	 00000000 _TEXT	Length= 0000007F Public STDCALL
+  color  . . . . . . . . . . . .	DWord	 bp + 00000008
+  p1X  . . . . . . . . . . . . .	DWord	 bp + 0000000C
+  p1Y  . . . . . . . . . . . . .	DWord	 bp + 00000010
+  p2X  . . . . . . . . . . . . .	DWord	 bp + 00000014
+  p2Y  . . . . . . . . . . . . .	DWord	 bp + 00000018
+  paddleHeight . . . . . . . . .	DWord	 bp + 0000001C
+  space  . . . . . . . . . . . .	DWord	 bp + 00000020
+  initialDrawP1  . . . . . . . .	L Near	 00000013 _TEXT	
+  initialDrawP2  . . . . . . . .	L Near	 0000004B _TEXT	
 DrawScore  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -507,28 +376,7 @@ Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-UpdateBall . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000170 Public STDCALL
-  xCoordBall . . . . . . . . . .	DWord	 bp + 00000008
-  yCoordBall . . . . . . . . . .	DWord	 bp + 0000000C
-  color  . . . . . . . . . . . .	DWord	 bp + 00000010
-  xRun . . . . . . . . . . . . .	DWord	 bp + 00000014
-  yRise  . . . . . . . . . . . .	DWord	 bp + 00000018
-  space  . . . . . . . . . . . .	DWord	 bp + 0000001C
-  boardTopOffset . . . . . . . .	DWord	 bp + 00000020
-  boardHeight  . . . . . . . . .	DWord	 bp + 00000024
-  leftPaddleX  . . . . . . . . .	DWord	 bp + 00000028
-  leftPaddleY  . . . . . . . . .	DWord	 bp + 0000002C
-  rightPaddleX . . . . . . . . .	DWord	 bp + 00000030
-  rightPaddleY . . . . . . . . .	DWord	 bp + 00000034
-  paddleHeight . . . . . . . . .	DWord	 bp + 00000038
-  Reset  . . . . . . . . . . . .	L Near	 0000001B _TEXT	
-  CollisionTesting . . . . . . .	L Near	 0000003F _TEXT	
-  NotTouchingBottom  . . . . . .	L Near	 00000067 _TEXT	
-  NotTouchingTop . . . . . . . .	L Near	 00000077 _TEXT	
-  NotTouchingRightPaddle . . . .	L Near	 000000A4 _TEXT	
-  NotTouchingLeftPaddle  . . . .	L Near	 000000D3 _TEXT	
-  UpdateCoords . . . . . . . . .	L Near	 000000D3 _TEXT	
-  Finish . . . . . . . . . . . .	L Near	 0000016B _TEXT	
+UpdateBall . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL

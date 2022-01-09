@@ -56,7 +56,7 @@ CheckUpKeyP1:                                ; eax = p1coordy
      mov dh, byte PTR [eax]                  ; y coordinate
      sub dh, byte PTR [paddleHeight]
      call Gotoxy
-     mov eax, color                    ; bg_color = black
+     mov eax, white+(lightCyan*16)                    ; bg_color = black
      call SetTextColor
      mov edx, OFFSET space
      call WriteString                        ; clear bottom line
@@ -92,7 +92,7 @@ CheckDownKeyP1:
      mov eax, p1coordy
      mov dh, byte PTR [eax]                  ; y coordinate
      call Gotoxy
-     mov eax, color                    ; bg_color = color
+     mov eax, white+(lightCyan*16)                    ; bg_color = color
      call SetTextColor
 
      mov edx, OFFSET space

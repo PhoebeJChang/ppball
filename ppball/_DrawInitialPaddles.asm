@@ -5,20 +5,20 @@ include ppball.inc
 .code 
 DrawInitialPaddles proc,
      color: dword,
-	player1X: PTR dword,						; x-coord
-	player1Y: PTR dword,						; y-coord
-	player2X: PTR dword,						; x-coord
-	player2Y: PTR dword,						; y-coord
-	paddleHeight: dword,
+	p1X: PTR dword,						; x座標
+	p1Y: PTR dword,						; y座標
+	p2X: PTR dword,						; x座標
+	p2Y: PTR dword,						; y座標
+	paddleHeight: dword,                        ;paddle 高度
      space: ptr byte
      
-     pushad
-     
-     ; draw initial pong paddle player 1
+     pushad 
+     ; p1 paddle 初始
+     ;ptr 宣告的記得加[]
 
-     mov eax, [player1X]
+     mov eax, [p1X]
      mov dl, byte PTR [eax]
-     mov eax, [player1Y]
+     mov eax, [p1Y]
      mov dh, byte PTR [eax]
      mov eax, [paddleHeight]
      mov ecx, [eax]
@@ -41,13 +41,13 @@ initialDrawP1:
      call SetTextColor
      popad
 
-     ; finish draw initial pong paddle player 1
+     ; 結束p1
 
-     ; draw initial pong paddle player 2
+     ;  p2 paddle 初始
      pushad
-     mov eax, [player2X]
+     mov eax, [p2X]
      mov dl, byte PTR [eax]
-     mov eax, [player2Y]
+     mov eax, [p2Y]
      mov dh, byte PTR [eax]
      mov eax, [paddleHeight]
      mov ecx, [eax]
@@ -67,7 +67,7 @@ initialDrawP2:
      call SetTextColor
      popad
 
-     ; finish draw initial pong paddle player 2
+     ; 結束p2
 
      mov dl, 0
      mov dh, 0
