@@ -36,6 +36,9 @@
     <MASM Include="_updateball.asm">
       <Filter>Header Files</Filter>
     </MASM>
+    <MASM Include="main.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="ppball.inc">
