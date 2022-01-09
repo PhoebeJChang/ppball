@@ -9,7 +9,7 @@ DrawFrame proto,
 	boardColumnLength: dword,					;BOARD_C_LENGTH
 	space: ptr byte
 
-DrawFirstTwoPaddles proto,
+ShowFirstTwoPaddles proto,
     color: dword,
 	p1X: PTR dword,						; x®y¼Ð
 	p1Y: PTR dword,						; y®y¼Ð
