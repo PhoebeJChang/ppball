@@ -6,24 +6,24 @@ DrawFrame proto,
 	playLeftEdgeOffset: dword,			;PLAY_L_EDGE_OFFSET
     boardRowLength: dword,				;BOARD_R_LENGTH
 	boardsinBetween: dword,				;BOARD_BETWEEN
-	boardColumnLength: dword,					;BOARD_C_LENGTH
+	boardColumnLength: dword,			;BOARD_C_LENGTH
 	space: ptr byte
 
 ShowFirstTwoPaddles proto,
     color: dword,
-	p1X: PTR dword,						; x座標
-	p1Y: PTR dword,						; y座標
-	p2X: PTR dword,						; x座標
-	p2Y: PTR dword,						; y座標
-	paddleHeight: dword,                        ;paddle 高度
-     space: ptr byte
+	p1X: PTR dword,						; 玩家一 x座標
+	p1Y: PTR dword,						; 玩家一 y座標
+	p2X: PTR dword,						; 玩家二 x座標
+	p2Y: PTR dword,						; 玩家二 y座標
+	paddleHeight: dword,                ;paddle 高度
+    space: ptr byte
 
 CheckMovement proto,
     color: dword,
-	p1coordx: PTR dword,						; x-coord
-	p1coordy: PTR dword,						; y-coord
-	p2coordx: PTR dword,						; x-coord
-	p2coordy: PTR dword,						; y-coord
+	p1X: PTR dword,						; 玩家一 x座標
+	p1Y: PTR dword,						; 玩家一 y座標
+	p2X: PTR dword,						; 玩家二 x座標
+	p2Y: PTR dword,						; 玩家二 y座標
 	paddleHeight: dword,
 	roomUpperBorder: dword,
 	roomLowerBorder: dword

@@ -22,7 +22,7 @@ ShowFirstTwoPaddles proc,
      mov dh, byte PTR [eax]
      mov eax, [paddleHeight]
      mov ecx, [eax]
-initialDrawP1:
+player1PaddleDraw:
      call Gotoxy
 
      ;mov al, '0'
@@ -35,7 +35,7 @@ initialDrawP1:
      call WriteString
      pop edx
      dec dh
-     loop initialDrawP1
+     loop player1PaddleDraw
 
      mov eax, 0
      call SetTextColor
@@ -51,9 +51,9 @@ initialDrawP1:
      mov dh, byte PTR [eax]
      mov eax, [paddleHeight]
      mov ecx, [eax]
-initialDrawP2:
+player2PaddleDraw:
      call Gotoxy
-     mov eax, color
+     mov eax, yellow+(lightRed*16)
      call SetTextColor
 
      push edx
@@ -61,7 +61,7 @@ initialDrawP2:
      call WriteString
      pop edx
      dec dh
-     loop initialDrawP2
+     loop player2PaddleDraw
 
      mov eax, 0
      call SetTextColor

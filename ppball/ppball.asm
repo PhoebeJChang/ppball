@@ -40,11 +40,11 @@ paddleHeight dword 4h
 ballDirection dword 90				; in degrees? or slope? 
 
 
-; gui information
-p1scoreString byte "Player 1 score:", 0
-p2scoreString byte "Player 2 score:", 0
-p1score dword 0
-p2score dword 0
+; gui information ª±®a­p¤À
+;p1scoreString byte "Player 1 score:", 0
+;p2scoreString byte "Player 2 score:", 0
+;p1score dword 0
+;p2score dword 0
 
 .code
 main proc

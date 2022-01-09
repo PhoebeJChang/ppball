@@ -7,10 +7,10 @@ space byte " ", 0
 .code 
 CheckMovement proc,
      color: dword,
-	p1coordx: PTR dword,						; x-coord
-	p1coordy: PTR dword,						; y-coord
-	p2coordx: PTR dword,						; x-coord
-	p2coordy: PTR dword,						; y-coord
+	p1X: PTR dword,						; x-coord
+	p1Y: PTR dword,						; y-coord
+	p2X: PTR dword,						; x-coord
+	p2Y: PTR dword,						; y-coord
 	paddleHeight: dword,
 	roomUpperBorder: dword,
 	roomLowerBorder: dword
@@ -30,8 +30,8 @@ CheckMovement proc,
      je CheckDownKeyP2
      jmp endit
 
-CheckUpKeyP1:                                ; eax = p1coordy
-     mov ebx, p1coordy
+CheckUpKeyP1:                                ; eax = p1Y
+     mov ebx, p1Y
 	mov eax, [ebx]
 	sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
 	cmp eax, roomUpperBorder
@@ -39,9 +39,9 @@ CheckUpKeyP1:                                ; eax = p1coordy
 	     ; skip if player1 is above or equal to room's upper border
 
           ; moved up, clear bottom line
-     mov eax, p1coordx
+     mov eax, p1X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p1coordy
+     mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y coordinate
      call Gotoxy
      mov eax, 0                              ; bg_color = black
@@ -50,9 +50,9 @@ CheckUpKeyP1:                                ; eax = p1coordy
      call WriteString                        ; clear bottom line
 
           ; moved up, create upper line.
-     mov eax, p1coordx
+     mov eax, p1X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p1coordy
+     mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y coordinate
      sub dh, byte PTR [paddleHeight]
      call Gotoxy
@@ -65,7 +65,7 @@ CheckUpKeyP1:                                ; eax = p1coordy
      jmp endit
 
 CheckDownKeyP1:
-     mov ebx, p1coordy
+     mov ebx, p1Y
 	mov eax, [ebx]
      add eax, 1
 	cmp eax, roomLowerBorder
@@ -73,9 +73,9 @@ CheckDownKeyP1:
 	     ; skip if player1 is below or equal to room's upper border
 
           ; moved up, delete upper line
-     mov eax, p1coordx
+     mov eax, p1X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p1coordy
+     mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y coordinate
      sub dh, byte PTR [paddleHeight]
      add dh, byte PTR 1
@@ -87,9 +87,9 @@ CheckDownKeyP1:
 
           ; moved up, create lower line.
      add [ebx], dword PTR 1                  ; change actual coordinate in main
-     mov eax, p1coordx
+     mov eax, p1X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p1coordy
+     mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y coordinate
      call Gotoxy
      mov eax, color                   ; bg_color = color
@@ -100,8 +100,8 @@ CheckDownKeyP1:
 
      jmp endit
 
-CheckUpKeyP2:                                ; eax = p2coordy
-     mov ebx, p2coordy
+CheckUpKeyP2:                                ; eax = p2Y
+     mov ebx, p2Y
 	mov eax, [ebx]
 	sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
 	cmp eax, roomUpperBorder
@@ -109,9 +109,9 @@ CheckUpKeyP2:                                ; eax = p2coordy
 	     ; skip if player2 is above or equal to room's upper border
 
           ; moved up, clear bottom line
-     mov eax, p2coordx
+     mov eax, p2X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p2coordy
+     mov eax, p2Y
      mov dh, byte PTR [eax]                  ; y coordinate
      call Gotoxy
      mov eax, 0                              ; bg_color = black
@@ -120,9 +120,9 @@ CheckUpKeyP2:                                ; eax = p2coordy
      call WriteString                        ; clear bottom line
 
           ; moved up, create upper line.
-     mov eax, p2coordx
+     mov eax, p2X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p2coordy
+     mov eax, p2Y
      mov dh, byte PTR [eax]                  ; y coordinate
      sub dh, byte PTR [paddleHeight]
      call Gotoxy
@@ -135,7 +135,7 @@ CheckUpKeyP2:                                ; eax = p2coordy
      jmp endit
 
 CheckDownKeyP2:
-     mov ebx, p2coordy
+     mov ebx, p2Y
 	mov eax, [ebx]
      add eax, 1
 	cmp eax, roomLowerBorder
@@ -143,9 +143,9 @@ CheckDownKeyP2:
 	     ; skip if player2 is below or equal to room's upper border
 
           ; moved up, delete upper line
-     mov eax, p2coordx
+     mov eax, p2X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p2coordy
+     mov eax, p2Y
      mov dh, byte PTR [eax]                  ; y coordinate
      sub dh, byte PTR [paddleHeight]
      add dh, byte PTR 1
@@ -157,9 +157,9 @@ CheckDownKeyP2:
 
           ; moved up, create lower line.
      add [ebx], dword PTR 1                  ; change actual coordinate in main
-     mov eax, p2coordx
+     mov eax, p2X
      mov dl, byte PTR [eax]                  ; x coordinate
-     mov eax, p2coordy
+     mov eax, p2Y
      mov dh, byte PTR [eax]                  ; y coordinate
      call Gotoxy
      mov eax, color                    ; bg_color = color
