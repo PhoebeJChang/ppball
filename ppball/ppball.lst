@@ -1,9 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 18:19:38
-_DrawInitialPaddles.asm					     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 18:43:37
+_drawframe.asm						     Page 1 - 1
 
 
-				; (_DrawInitialPaddles.asm)
-
+				; (_drawframe.asm)
 				include ppball.inc
 			      C include Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -100,84 +99,77 @@ _DrawInitialPaddles.asm					     Page 1 - 1
 			      C      timedu: dword
 			      C 
 
- 00000000			.code 
- 00000000			DrawInitialPaddles proc,
-				     color: dword,
-					p1X: PTR dword,						; x座標
-					p1Y: PTR dword,						; y座標
-					p2X: PTR dword,						; x座標
-					p2Y: PTR dword,						; y座標
-					paddleHeight: dword,                        ;paddle 高度
-				     space: ptr byte 
-				     
- 00000003  60			     pushad 
-				     ; p1 paddle 初始
-				     ;ptr 宣告的記得加[]
+ 00000000			.code
+ 00000000			DrawFrame proc,
+				    color: dword,
+					boardTopOffset: dword,
+					boardLeftEdgeOffset: dword,
+				    boardWidth: dword,
+					boardHeight: dword,
+					borderWidth: dword,
+					space: ptr byte
+					
+					; boardTopOffset - distance from the top edge of the console to the top edge of the game board
+				     ; boardLeftEdgeOffset - distance from the left edge of the console to the left edge of the game board
+					; boardWidth - width of the board
+					; boardHeight - the height of the board
+					; borderWidth - the width of the boarder lines
+					; space - the offset of a fill character
 
- 00000004  8B 45 0C		     mov eax, [p1X]
- 00000007  8A 10		     mov dl, byte PTR [eax]
- 00000009  8B 45 10		     mov eax, [p1Y]
- 0000000C  8A 30		     mov dh, byte PTR [eax]
- 0000000E  8B 45 1C		     mov eax, [paddleHeight]
- 00000011  8B 08		     mov ecx, [eax]
- 00000013			initialDrawP1:
- 00000013  E8 00000000 E	     call Gotoxy
+ 00000003  60				pushad
+					     
+					; first, the top border
+				     ; set the the background color
+ 00000004  8B 45 08			mov eax, color
+ 00000007  E8 00000000 E		call SetTextColor
+					; place the cursor at the top left edge of the board
+ 0000000C  8B 45 0C		    mov eax, boardTopOffset
+ 0000000F  8B 5D 10		    mov ebx, boardLeftEdgeOffset
+ 00000012  8A F0			mov dh, al
+ 00000014  8A D3			mov dl, bl
+ 00000016  E8 00000000 E		call Gotoxy
+					; load edx with the fill character
+ 0000001B  8B 55 20			mov edx, space
+					; print the borders
+ 0000001E  B9 00000002			mov ecx, 2
+ 00000023  51			L0: push ecx
+ 00000024  8B 4D 1C			mov ecx, borderWidth
+ 00000027  51			L1: push ecx
+ 00000028  8B 4D 14			mov ecx, boardWidth
+ 0000002B  E8 00000000 E	L2: call WriteString	
+ 00000030  E2 F9			loop L2
+ 00000032  59				pop ecx
+ 00000033  E2 F2			loop L1
+ 00000035  59				pop ecx
+				    ; place the cursor at the start of the bottom border
+ 00000036  50			    push eax
+ 00000037  52			    push edx
+ 00000038  03 45 18		    add eax, boardHeight
+ 0000003B  8A F0		    mov dh, al
+ 0000003D  8A D3			mov dl, bl
+ 0000003F  E8 00000000 E		call Gotoxy
+ 00000044  5A			    pop edx
+ 00000045  58			    pop eax
+				    ; now repeat to draw the bottom border
+ 00000046  E2 DB			loop L0
 
-				     ;mov al, '0'
-				     ;call WriteChar
- 00000018  B8 000000BF		     mov eax, white+(lightCyan*16)
- 0000001D  E8 00000000 E	     call SetTextColor
-
- 00000022  52			     push edx
- 00000023  8B 55 20		     mov edx, space
- 00000026  E8 00000000 E	     call WriteString
- 0000002B  5A			     pop edx
- 0000002C  FE CE		     dec dh
- 0000002E  E2 E3		     loop initialDrawP1
-
- 00000030  B8 00000000		     mov eax, 0
- 00000035  E8 00000000 E	     call SetTextColor
- 0000003A  61			     popad
-
-				     ; 結束p1
-
-				     ;  p2 paddle 初始
- 0000003B  60			     pushad
- 0000003C  8B 45 14		     mov eax, [p2X]
- 0000003F  8A 10		     mov dl, byte PTR [eax]
- 00000041  8B 45 18		     mov eax, [p2Y]
- 00000044  8A 30		     mov dh, byte PTR [eax]
- 00000046  8B 45 1C		     mov eax, [paddleHeight]
- 00000049  8B 08		     mov ecx, [eax]
- 0000004B			initialDrawP2:
- 0000004B  E8 00000000 E	     call Gotoxy
- 00000050  8B 45 08		     mov eax, color
- 00000053  E8 00000000 E	     call SetTextColor
-
- 00000058  52			     push edx
- 00000059  8B 55 20		     mov edx, space
- 0000005C  E8 00000000 E	     call WriteString
- 00000061  5A			     pop edx
- 00000062  FE CE		     dec dh
- 00000064  E2 E5		     loop initialDrawP2
-
- 00000066  B8 00000000		     mov eax, 0
- 0000006B  E8 00000000 E	     call SetTextColor
- 00000070  61			     popad
-
-				     ; 結束p2
-
- 00000071  B2 00		     mov dl, 0
- 00000073  B6 00		     mov dh, 0
- 00000075  E8 00000000 E	     call Gotoxy
-				     
- 0000007A  60			     pushad
-
-				     ret
- 0000007F			DrawInitialPaddles endp
+					
+					; set the text and background colors back to the defaults like a friend
+ 00000048  B8 00000000			mov eax, 0
+ 0000004D  E8 00000000 E		call SetTextColor
+				    ; move the cursor back to the top left corner of the console
+ 00000052  BA 00000000		    mov edx, 0
+ 00000057  E8 00000000 E	    call Gotoxy
+					
+					; and done
+ 0000005C  61				popad
+					ret
+ 00000061			DrawFrame endp
 				end
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 18:19:38
-_DrawInitialPaddles.asm					     Symbols 2 - 1
+					
+	
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 18:43:37
+_drawframe.asm						     Symbols 2 - 1
 
 
 
@@ -271,7 +263,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000007F Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000061 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -288,17 +280,18 @@ CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawBall . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawFrame  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawInitialPaddles . . . . . . .	P Near	 00000000 _TEXT	Length= 0000007F Public STDCALL
+DrawFrame  . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000061 Public STDCALL
   color  . . . . . . . . . . . .	DWord	 bp + 00000008
-  p1X  . . . . . . . . . . . . .	DWord	 bp + 0000000C
-  p1Y  . . . . . . . . . . . . .	DWord	 bp + 00000010
-  p2X  . . . . . . . . . . . . .	DWord	 bp + 00000014
-  p2Y  . . . . . . . . . . . . .	DWord	 bp + 00000018
-  paddleHeight . . . . . . . . .	DWord	 bp + 0000001C
+  boardTopOffset . . . . . . . .	DWord	 bp + 0000000C
+  boardLeftEdgeOffset  . . . . .	DWord	 bp + 00000010
+  boardWidth . . . . . . . . . .	DWord	 bp + 00000014
+  boardHeight  . . . . . . . . .	DWord	 bp + 00000018
+  borderWidth  . . . . . . . . .	DWord	 bp + 0000001C
   space  . . . . . . . . . . . .	DWord	 bp + 00000020
-  initialDrawP1  . . . . . . . .	L Near	 00000013 _TEXT	
-  initialDrawP2  . . . . . . . .	L Near	 0000004B _TEXT	
+  L0 . . . . . . . . . . . . . .	L Near	 00000023 _TEXT	
+  L1 . . . . . . . . . . . . . .	L Near	 00000027 _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 0000002B _TEXT	
+DrawInitialPaddles . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawScore  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
