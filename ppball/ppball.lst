@@ -1,8 +1,6 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/07/22 20:21:25
-_CheckMovement.asm					     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 16:35:41
+_updateball.asm						     Page 1 - 1
 
-
-				; (_CheckMovement.asm)
 
 				include ppball.inc
 			      C include Irvine32.inc
@@ -99,189 +97,227 @@ _CheckMovement.asm					     Page 1 - 1
 			      C Chill proto,
 			      C      duration: dword
 			      C 
- 00000000			.data
- 00000000 20 00			space byte " ", 0
 
- 00000000			.code 
- 00000000			CheckMovement proc,
-				     color: dword,
-					p1coordx: PTR dword,						; x-coord
-					p1coordy: PTR dword,						; y-coord
-					p2coordx: PTR dword,						; x-coord
-					p2coordy: PTR dword,						; y-coord
-					paddleHeight: dword,
-					roomUpperBorder: dword,
-					roomLowerBorder: dword
-				    
- 00000003  60			    pushad
+ 00000000			.code
+ 00000000			UpdateBall proc,
+					xCoordBall: ptr dword,
+					yCoordBall: ptr dword,
+				    color: dword,
+					xRun: ptr dword,
+					yRise: ptr dword,
+					space: ptr byte,
+					boardTopOffset: dword,
+					boardHeight: dword,
+				    leftPaddleX: dword,
+				    leftPaddleY: dword,
+				    rightPaddleX: dword,
+				    rightPaddleY: dword,
+					paddleHeight: dword
 					
- 00000004  E8 00000000 E	     call ReadKey
- 00000009  0F 84 000001A5	     je endit
-
- 0000000F  3C 77		     cmp al, "w"
- 00000011  74 19		     je CheckUpKeyP1
- 00000013  3C 73		     cmp al, "s"
- 00000015  74 78		     je CheckDownKeyP1
- 00000017  3C 6F		     cmp al, "o"
- 00000019  0F 84 000000D6	     je CheckUpKeyP2
- 0000001F  3C 6C		     cmp al, "l"
- 00000021  0F 84 0000012E	     je CheckDownKeyP2
- 00000027  E9 00000188		     jmp endit
-
- 0000002C			CheckUpKeyP1:                                ; eax = p1coordy
- 0000002C  8B 5D 10		     mov ebx, p1coordy
- 0000002F  8B 03			mov eax, [ebx]
- 00000031  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
- 00000034  3B 45 20			cmp eax, roomUpperBorder
- 00000037  0F 86 00000177		jbe endit
-					     ; skip if player1 is above or equal to room's upper border
-
-				          ; moved up, clear bottom line
- 0000003D  8B 45 0C		     mov eax, p1coordx
- 00000040  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 00000042  8B 45 10		     mov eax, p1coordy
- 00000045  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 00000047  E8 00000000 E	     call Gotoxy
- 0000004C  B8 00000000		     mov eax, 0                              ; bg_color = black
- 00000051  E8 00000000 E	     call SetTextColor
- 00000056  BA 00000000 R	     mov edx, OFFSET space
- 0000005B  E8 00000000 E	     call WriteString                        ; clear bottom line
-
-				          ; moved up, create upper line.
- 00000060  8B 45 0C		     mov eax, p1coordx
- 00000063  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 00000065  8B 45 10		     mov eax, p1coordy
- 00000068  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 0000006A  2A 75 1C		     sub dh, byte PTR [paddleHeight]
- 0000006D  E8 00000000 E	     call Gotoxy
- 00000072  8B 45 08		     mov eax, color                    ; bg_color = black
- 00000075  E8 00000000 E	     call SetTextColor
- 0000007A  BA 00000000 R	     mov edx, OFFSET space
- 0000007F  E8 00000000 E	     call WriteString                        ; clear bottom line
-
- 00000084  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
- 0000008A  E9 00000125		     jmp endit
-
- 0000008F			CheckDownKeyP1:
- 0000008F  8B 5D 10		     mov ebx, p1coordy
- 00000092  8B 03			mov eax, [ebx]
- 00000094  83 C0 01		     add eax, 1
- 00000097  3B 45 24			cmp eax, roomLowerBorder
- 0000009A  0F 83 00000114		jae endit
-					     ; skip if player1 is below or equal to room's upper border
-
-				          ; moved up, delete upper line
- 000000A0  8B 45 0C		     mov eax, p1coordx
- 000000A3  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 000000A5  8B 45 10		     mov eax, p1coordy
- 000000A8  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 000000AA  2A 75 1C		     sub dh, byte PTR [paddleHeight]
- 000000AD  80 C6 01		     add dh, byte PTR 1
- 000000B0  E8 00000000 E	     call Gotoxy
- 000000B5  B8 00000000		     mov eax, 0                              ; bg_color = black
- 000000BA  E8 00000000 E	     call SetTextColor                       ; set color to black
- 000000BF  BA 00000000 R	     mov edx, OFFSET space
- 000000C4  E8 00000000 E	     call WriteString                        ; clear bottom line
-
-				          ; moved up, create lower line.
- 000000C9  81 03 00000001	     add [ebx], dword PTR 1                  ; change actual coordinate in main
- 000000CF  8B 45 0C		     mov eax, p1coordx
- 000000D2  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 000000D4  8B 45 10		     mov eax, p1coordy
- 000000D7  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 000000D9  E8 00000000 E	     call Gotoxy
- 000000DE  8B 45 08		     mov eax, color                    ; bg_color = color
- 000000E1  E8 00000000 E	     call SetTextColor
-
- 000000E6  BA 00000000 R	     mov edx, OFFSET space
- 000000EB  E8 00000000 E	     call WriteString                        ; create bottom line
-
- 000000F0  E9 000000BF		     jmp endit
-
- 000000F5			CheckUpKeyP2:                                ; eax = p2coordy
- 000000F5  8B 5D 18		     mov ebx, p2coordy
- 000000F8  8B 03			mov eax, [ebx]
- 000000FA  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
- 000000FD  3B 45 20			cmp eax, roomUpperBorder
- 00000100  0F 86 000000AE		jbe endit
-					     ; skip if player2 is above or equal to room's upper border
-
-				          ; moved up, clear bottom line
- 00000106  8B 45 14		     mov eax, p2coordx
- 00000109  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 0000010B  8B 45 18		     mov eax, p2coordy
- 0000010E  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 00000110  E8 00000000 E	     call Gotoxy
- 00000115  B8 00000000		     mov eax, 0                              ; bg_color = black
- 0000011A  E8 00000000 E	     call SetTextColor
- 0000011F  BA 00000000 R	     mov edx, OFFSET space
- 00000124  E8 00000000 E	     call WriteString                        ; clear bottom line
-
-				          ; moved up, create upper line.
- 00000129  8B 45 14		     mov eax, p2coordx
- 0000012C  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 0000012E  8B 45 18		     mov eax, p2coordy
- 00000131  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 00000133  2A 75 1C		     sub dh, byte PTR [paddleHeight]
- 00000136  E8 00000000 E	     call Gotoxy
- 0000013B  8B 45 08		     mov eax, color                    ; bg_color = black
- 0000013E  E8 00000000 E	     call SetTextColor
- 00000143  BA 00000000 R	     mov edx, OFFSET space
- 00000148  E8 00000000 E	     call WriteString                        ; clear bottom line
-
- 0000014D  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
- 00000153  EB 5F		     jmp endit
-
- 00000155			CheckDownKeyP2:
- 00000155  8B 5D 18		     mov ebx, p2coordy
- 00000158  8B 03			mov eax, [ebx]
- 0000015A  83 C0 01		     add eax, 1
- 0000015D  3B 45 24			cmp eax, roomLowerBorder
- 00000160  73 52			jae endit
-					     ; skip if player2 is below or equal to room's upper border
-
-				          ; moved up, delete upper line
- 00000162  8B 45 14		     mov eax, p2coordx
- 00000165  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 00000167  8B 45 18		     mov eax, p2coordy
- 0000016A  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 0000016C  2A 75 1C		     sub dh, byte PTR [paddleHeight]
- 0000016F  80 C6 01		     add dh, byte PTR 1
- 00000172  E8 00000000 E	     call Gotoxy
- 00000177  B8 00000000		     mov eax, 0                              ; bg_color = black
- 0000017C  E8 00000000 E	     call SetTextColor                       ; set color to black
- 00000181  BA 00000000 R	     mov edx, OFFSET space
- 00000186  E8 00000000 E	     call WriteString                        ; clear bottom line
-
-				          ; moved up, create lower line.
- 0000018B  81 03 00000001	     add [ebx], dword PTR 1                  ; change actual coordinate in main
- 00000191  8B 45 14		     mov eax, p2coordx
- 00000194  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
- 00000196  8B 45 18		     mov eax, p2coordy
- 00000199  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
- 0000019B  E8 00000000 E	     call Gotoxy
- 000001A0  8B 45 08		     mov eax, color                    ; bg_color = color
- 000001A3  E8 00000000 E	     call SetTextColor
-
- 000001A8  BA 00000000 R	     mov edx, OFFSET space
- 000001AD  E8 00000000 E	     call WriteString                        ; create bottom line
-
- 000001B2  EB 00		     jmp endit
-
- 000001B4			endit:
- 000001B4  61				popad
+					; xCoordBall - the current absolute x coordinate of the ball 
+					; yCoordBall - the current absolute y coordinate of the ball
+					; xRun - the x (horizontal) component of the ball's velocity
+					; yRise - the y (vertical) component of the ball's velocity
+						; note : a positive yRise value translates to downward motion of the ball on the consoloe and vice-versa
 					
- 000001B5  B2 00		     mov dl, byte ptr 0h
- 000001B7  B6 00		     mov dh, byte ptr 0h
- 000001B9  E8 00000000 E	     call Gotoxy
-				     ; reset color
- 000001BE  B8 00000000		     mov eax, 0
- 000001C3  E8 00000000 E	     call SetTextColor
+					; save the state of the registers from the time of the function call
+ 00000003  60				pushad
+					
+					; if the ball goes outside the board, reset the ball
+ 00000004  8B 45 08			mov eax, xCoordBall
+ 00000007  8B 5D 30			mov ebx, rightPaddleX
+ 0000000A  83 C3 14			add ebx, 20
+ 0000000D  39 18			cmp [eax], ebx
+ 0000000F  77 0A			ja Reset
+ 00000011  8B 5D 28			mov ebx, leftPaddleX
+ 00000014  83 EB 05			sub ebx, 5
+ 00000017  39 18			cmp [eax], ebx
+ 00000019  77 24			ja CollisionTesting
+ 0000001B			Reset:
+ 0000001B  8B 45 20			mov eax, boardTopOffset
+ 0000001E  83 C0 02			add eax, 2
+ 00000021  8B 5D 28			mov ebx, leftPaddleX
+ 00000024  83 C3 02			add ebx, 2
+					invoke ResetBall, xCoordBall, yCoordBall, ebx, eax, xRun, yRise
+ 0000003A  E9 0000012C			jmp Finish
+					
+ 0000003F			CollisionTesting:
+				    ; if the ball is beyond the paddles, let it go checking that here
+ 0000003F  8B 45 08		    mov eax, xCoordBall
+ 00000042  8B 5D 30			mov ebx, rightPaddleX
+ 00000045  39 18			cmp [eax], ebx
+ 00000047  0F 87 00000086		ja UpdateCoords
+ 0000004D  8B 5D 28			mov ebx, leftPaddleX
+ 00000050  39 18			cmp [eax], ebx
+ 00000052  72 7F			jb UpdateCoords
+
+				    ; check whether the ball is touching either frame
+				    ; bottom frame
+ 00000054  8B 45 0C			mov eax, [yCoordBall]
+ 00000057  8B 5D 20			mov ebx, boardTopOffset
+ 0000005A  03 5D 24			add ebx, boardHeight
+ 0000005D  4B			    dec ebx
+ 0000005E  39 18			cmp [eax], ebx
+ 00000060  72 05			jb NotTouchingBottom
+ 00000062  8B 45 18			mov eax, [yRise]
+ 00000065  F7 18			neg dword ptr [eax]
+					
+ 00000067			NotTouchingBottom:
+					; top frame
+ 00000067  8B 45 0C		    mov eax, [yCoordBall]
+ 0000006A  8B 5D 20			mov ebx, boardTopOffset
+ 0000006D  43				inc ebx
+ 0000006E  39 18			cmp [eax], ebx
+ 00000070  77 05			ja NotTouchingTop
+ 00000072  8B 45 18			mov eax, [yRise]
+ 00000075  F7 18			neg dword ptr [eax]
+					
+ 00000077			NotTouchingTop:
+					; check whether the ball is touching either paddle
+					; right paddle
+					; first decide whether the ball's x-value is equal to the right paddle's x-value
+ 00000077  8B 45 30			mov eax, rightPaddleX
+ 0000007A  8B D8			mov ebx, eax
+ 0000007C  4B				dec ebx
+ 0000007D  8B 45 08			mov eax, [xCoordBall]
+ 00000080  39 18			cmp [eax], ebx
+ 00000082  72 20			jb NotTouchingRightPaddle
+					; ball is potentially touching the right paddle - now check whether the ball's y-value is within the paddle's y-range
+					; ball is not touching if it is below the paddle - checking that here
+ 00000084  8B 45 34			mov eax, rightPaddleY
+ 00000087  8B D8			mov ebx, eax
+ 00000089  8B 45 0C			mov eax, [yCoordBall]
+ 0000008C  39 18			cmp [eax], ebx
+ 0000008E  77 14			ja NotTouchingRightPaddle
+					; ball is not touching if it is above the paddle - checking that here
+ 00000090  8B 45 34			mov eax, rightPaddleY
+ 00000093  8B D8			mov ebx, eax
+ 00000095  2B 5D 38			sub ebx, paddleHeight
+ 00000098  8B 45 0C			mov eax, [yCoordBall]
+ 0000009B  39 18			cmp [eax], ebx
+ 0000009D  72 05			jb NotTouchingRightPaddle
+ 0000009F  8B 45 14			mov eax, [xRun]
+ 000000A2  F7 18			neg dword ptr [eax]
+					
+ 000000A4			NotTouchingRightPaddle:
+					; now check the left paddle
+					; first decide whether the ball's x-value is equal to the left paddle's x-value
+ 000000A4  8B 45 28			mov eax, leftPaddleX
+ 000000A7  8B D8			mov ebx, eax
+ 000000A9  83 C3 02		    add ebx, 2
+ 000000AC  8B 45 08			mov eax, [xCoordBall]
+ 000000AF  39 18			cmp [eax], ebx
+ 000000B1  77 20			ja NotTouchingLeftPaddle
+					; ball is potentially touching the left paddle - now check whether the ball's y-value is within the paddle's y-range
+					; ball is not touching if it is below the paddle - checking that here
+ 000000B3  8B 45 2C			mov eax, leftPaddleY
+ 000000B6  8B D8			mov ebx, eax
+ 000000B8  8B 45 0C			mov eax, [yCoordBall]
+ 000000BB  39 18			cmp [eax], ebx
+ 000000BD  77 14			ja NotTouchingLeftPaddle
+					; ball is not touching if it is above the paddle - checking that here
+ 000000BF  8B 45 2C			mov eax, leftPaddleY
+ 000000C2  8B D8			mov ebx, eax
+ 000000C4  2B 5D 38			sub ebx, paddleHeight
+ 000000C7  8B 45 0C			mov eax, [yCoordBall]
+ 000000CA  39 18			cmp [eax], ebx
+ 000000CC  72 05			jb NotTouchingLeftPaddle
+ 000000CE  8B 45 14			mov eax, [xRun]
+ 000000D1  F7 18			neg dword ptr [eax]
+					
+ 000000D3			NotTouchingLeftPaddle:
+ 000000D3			UpdateCoords:
+					; update the x- and y-coordinates of the ball
+					; x
+ 000000D3  8B 45 14			mov eax, [xRun]
+ 000000D6  8B 18		    mov ebx, [eax]
+ 000000D8  8B 45 08		    mov eax, [xCoordBall]
+ 000000DB  03 18		    add ebx, [eax]
+ 000000DD  89 18			mov [eax], ebx
+					; y
+ 000000DF  8B 45 18			mov eax, [yRise]
+ 000000E2  8B 18			mov ebx, [eax]
+ 000000E4  8B 45 0C			mov eax, [yCoordBall]
+ 000000E7  03 18			add ebx, [eax]
+ 000000E9  89 18			mov [eax], ebx
+					
+					; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
+ 000000EB  8B 5D 08			mov ebx, [xCoordBall]
+ 000000EE  8A 13			mov dl, byte ptr [ebx]
+ 000000F0  8B 5D 0C			mov ebx, [yCoordBall]
+ 000000F3  8A 33			mov dh, byte ptr [ebx]
+ 000000F5  E8 00000000 E		call Gotoxy
+					
+					; change the fill color to white to represent the ball with a white-filled space
+ 000000FA  8B 45 10			mov eax, color
+ 000000FD  E8 00000000 E		call SetTextColor
+					
+					; print a space character to print the ball as a white space
+ 00000102  8B 55 1C			mov edx, space
+ 00000105  E8 00000000 E		call WriteString
+					
+					; now set the text background color back to black like a friend
+ 0000010A  B8 00000000			mov eax, black * 16
+ 0000010F  E8 00000000 E		call SetTextColor
+
+				    ; now erase the ball's shadow from its previous location
+				    ; go to the ball's previous position
+					; set x-coordinate back to its original value
+ 00000114  8B 45 08		    mov eax, [xCoordBall]
+ 00000117  8B 18		    mov ebx, [eax]
+ 00000119  8B 45 14		    mov eax, [xRun]
+ 0000011C  2B 18			sub ebx, [eax]
+				    ; now store the (original) x-coordinate value in xCoordBall
+ 0000011E  8B 45 08		    mov eax, [xCoordBall]
+ 00000121  89 18		    mov [eax], ebx
+
+					; set y-coordinate back to its original value
+ 00000123  8B 45 0C		    mov eax, [yCoordBall]
+ 00000126  8B 18			mov ebx, [eax]
+ 00000128  8B 45 18			mov eax, [yRise]
+ 0000012B  2B 18			sub ebx, [eax]
+ 0000012D  8B 45 0C			mov eax, [yCoordBall]
+ 00000130  89 18		    mov [eax], ebx
+
+				    ; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
+ 00000132  8B 5D 08		    mov ebx, [xCoordBall]
+ 00000135  8A 13			mov dl, [ebx]
+ 00000137  8B 5D 0C			mov ebx, [yCoordBall]
+ 0000013A  8A 33			mov dh, [ebx]
+ 0000013C  E8 00000000 E		call Gotoxy
+					
+					; now print a space with a black background to remove the ball's shadow
+ 00000141  8B 55 1C			mov edx, space
+ 00000144  E8 00000000 E		call WriteString
+					
+					; now re-update xCoordBall and yCoordBall with their new values
+					; x
+ 00000149  8B 45 14			mov eax, [xRun]
+ 0000014C  8B 18		    mov ebx, [eax]
+ 0000014E  8B 45 08		    mov eax, [xCoordBall]
+ 00000151  03 18		    add ebx, [eax]
+ 00000153  89 18			mov [eax], ebx
+					; y
+ 00000155  8B 45 18			mov eax, [yRise]
+ 00000158  8B 18			mov ebx, [eax]
+ 0000015A  8B 45 0C			mov eax, [yCoordBall]
+ 0000015D  03 18			add ebx, [eax]
+ 0000015F  89 18			mov [eax], ebx
+					
+				    ; move the cursor back to 0 to get it out of the gamespace
+ 00000161  BA 00000000		    mov edx, 0
+ 00000166  E8 00000000 E	    call Gotoxy
+ 0000016B			Finish:
+					; restore the state of the registers from the time of the function call
+ 0000016B  61				popad
 					ret
- 000001CC			CheckMovement endp
+
+ 00000170			UpdateBall endp
 				end
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/07/22 20:21:25
-_CheckMovement.asm					     Symbols 2 - 1
+					
+	
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 16:35:41
+_updateball.asm						     Symbols 2 - 1
 
 
 
@@ -374,28 +410,15 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000002 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000001CC Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000170 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-CheckMovement  . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001CC Public STDCALL
-  color  . . . . . . . . . . . .	DWord	 bp + 00000008
-  p1coordx . . . . . . . . . . .	DWord	 bp + 0000000C
-  p1coordy . . . . . . . . . . .	DWord	 bp + 00000010
-  p2coordx . . . . . . . . . . .	DWord	 bp + 00000014
-  p2coordy . . . . . . . . . . .	DWord	 bp + 00000018
-  paddleHeight . . . . . . . . .	DWord	 bp + 0000001C
-  roomUpperBorder  . . . . . . .	DWord	 bp + 00000020
-  roomLowerBorder  . . . . . . .	DWord	 bp + 00000024
-  CheckUpKeyP1 . . . . . . . . .	L Near	 0000002C _TEXT	
-  CheckDownKeyP1 . . . . . . . .	L Near	 0000008F _TEXT	
-  CheckUpKeyP2 . . . . . . . . .	L Near	 000000F5 _TEXT	
-  CheckDownKeyP2 . . . . . . . .	L Near	 00000155 _TEXT	
-  endit  . . . . . . . . . . . .	L Near	 000001B4 _TEXT	
+CheckMovement  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Chill  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -484,7 +507,28 @@ Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-UpdateBall . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+UpdateBall . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000170 Public STDCALL
+  xCoordBall . . . . . . . . . .	DWord	 bp + 00000008
+  yCoordBall . . . . . . . . . .	DWord	 bp + 0000000C
+  color  . . . . . . . . . . . .	DWord	 bp + 00000010
+  xRun . . . . . . . . . . . . .	DWord	 bp + 00000014
+  yRise  . . . . . . . . . . . .	DWord	 bp + 00000018
+  space  . . . . . . . . . . . .	DWord	 bp + 0000001C
+  boardTopOffset . . . . . . . .	DWord	 bp + 00000020
+  boardHeight  . . . . . . . . .	DWord	 bp + 00000024
+  leftPaddleX  . . . . . . . . .	DWord	 bp + 00000028
+  leftPaddleY  . . . . . . . . .	DWord	 bp + 0000002C
+  rightPaddleX . . . . . . . . .	DWord	 bp + 00000030
+  rightPaddleY . . . . . . . . .	DWord	 bp + 00000034
+  paddleHeight . . . . . . . . .	DWord	 bp + 00000038
+  Reset  . . . . . . . . . . . .	L Near	 0000001B _TEXT	
+  CollisionTesting . . . . . . .	L Near	 0000003F _TEXT	
+  NotTouchingBottom  . . . . . .	L Near	 00000067 _TEXT	
+  NotTouchingTop . . . . . . . .	L Near	 00000077 _TEXT	
+  NotTouchingRightPaddle . . . .	L Near	 000000A4 _TEXT	
+  NotTouchingLeftPaddle  . . . .	L Near	 000000D3 _TEXT	
+  UpdateCoords . . . . . . . . .	L Near	 000000D3 _TEXT	
+  Finish . . . . . . . . . . . .	L Near	 0000016B _TEXT	
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -736,7 +780,6 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-space  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   

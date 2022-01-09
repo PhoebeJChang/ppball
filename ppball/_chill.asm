@@ -3,17 +3,19 @@
 include ppball.inc
 
 .code 
-Chill proc,
-	duration: dword
+Chill PROC,
+	timedu: dword 
 
-	; duration - the length of time to chill in milliseconds
+	; timedu - the length of time to chill in milliseconds
 
-     pushad
+    pushad		;save general-purpose register
 
-	mov eax, duration
+	mov eax, timedu
 	call Delay
 
-    popad
+    popad		;restore
 	ret
 Chill endp
 end
+
+;text 5.2.1

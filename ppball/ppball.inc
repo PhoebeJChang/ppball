@@ -73,4 +73,4 @@ ResetBall proto,
 	yRise: ptr dword
  
 Chill proto,
-     duration: dword
+     timedu: dword
