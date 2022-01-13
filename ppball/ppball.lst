@@ -1,8 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 23:12:35
-_ShowFirstTwoPaddles.asm				     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/13/22 23:39:54
+_CheckMovement.asm					     Page 1 - 1
 
 
-				; (_ShowFirstTwoPaddles.asm)
+				; (_CheckMovement.asm)
 
 				include ppball.inc
 			      C include Irvine32.inc
@@ -20,6 +20,10 @@ _ShowFirstTwoPaddles.asm				     Page 1 - 1
 			      C .LIST
 			      C 
 			      C 
+			      C .NOLIST
+			      C .LIST
+			      C 
+			      C include Macros.inc
 			      C .NOLIST
 			      C .LIST
 			      C 
@@ -49,7 +53,7 @@ _ShowFirstTwoPaddles.asm				     Page 1 - 1
 			      C 	p2X: PTR dword,						; 玩家二 x座標
 			      C 	p2Y: PTR dword,						; 玩家二 y座標
 			      C 	paddleHeight: dword,
-			      C 	roomUpperBorder: dword,
+			      C 	playTopEdge: dword,
 			      C 	roomLowerBorder: dword
 			      C  
 			      C DrawBall proto,
@@ -99,87 +103,210 @@ _ShowFirstTwoPaddles.asm				     Page 1 - 1
 			      C Chill proto,
 			      C      timedu: dword
 			      C 
+ 00000000			.data
+ 00000000 20 00			space byte " ", 0
 
  00000000			.code 
- 00000000			ShowFirstTwoPaddles proc,
+ 00000000			CheckMovement proc,
 				     color: dword,
-					p1X: PTR dword,						; x座標
-					p1Y: PTR dword,						; y座標
-					p2X: PTR dword,						; x座標
-					p2Y: PTR dword,						; y座標
-					paddleHeight: dword,                        ;paddle 高度
-				     space: ptr byte 
+					p1X: PTR dword,						; x-coord
+					p1Y: PTR dword,						; y-coord
+					p2X: PTR dword,						; x-coord
+					p2Y: PTR dword,						; y-coord
+					paddleHeight: dword,
+					playTopEdge: dword,
+					roomLowerBorder: dword
+				    
+ 00000003  60			    pushad
+					
+ 00000004  E8 00000000 E	     call ReadKey
+ 00000009  0F 84 000001AB	     je continueN
+
+ 0000000F  3C 77		     cmp al, "w"
+ 00000011  74 1B		     je MoveUpP1                ;p1 paddle向上
+ 00000013  3C 73		     cmp al, "s"
+ 00000015  74 7A		     je MoveDownP1              ;p2 paddle向下
 				     
- 00000003  60			     pushad 
-				     ; p1 paddle 初始
-				     ;ptr 宣告的記得加[]
+ 00000017  80 FC 48		     cmp ah, 48h                ;向上鍵
+ 0000001A  0F 84 000000D7	     je MoveUpP2                ;p2 paddle向上
+ 00000020  80 FC 50		     cmp ah, 50h                ;向下鍵
+ 00000023  0F 84 00000130	     je MoveDownP2              ;p2 paddle向下
+ 00000029  E9 0000018C		     jmp continueN
 
- 00000004  8B 45 0C		     mov eax, [p1X]
- 00000007  8A 10		     mov dl, byte PTR [eax]
- 00000009  8B 45 10		     mov eax, [p1Y]
- 0000000C  8A 30		     mov dh, byte PTR [eax]
- 0000000E  8B 45 1C		     mov eax, [paddleHeight]
- 00000011  8B 08		     mov ecx, [eax]
- 00000013			player1PaddleDraw:
- 00000013  E8 00000000 E	     call Gotoxy
+ 0000002E			MoveUpP1:                                ; eax = p1Y
+ 0000002E  8B 5D 10		     mov ebx, p1Y
+ 00000031  8B 03			mov eax, [ebx]
+ 00000033  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
+ 00000036  3B 45 20			cmp eax, playTopEdge
+ 00000039  0F 86 0000017B		jbe continueN
+					     ; skip if player1 is above or equal to room's upper border
 
-				     ;mov al, '0'
-				     ;call WriteChar
- 00000018  8B 45 08		     mov eax, color
- 0000001B  E8 00000000 E	     call SetTextColor
-
- 00000020  52			     push edx
- 00000021  8B 55 20		     mov edx, space
- 00000024  E8 00000000 E	     call WriteString
- 00000029  5A			     pop edx
- 0000002A  FE CE		     dec dh
- 0000002C  E2 E5		     loop player1PaddleDraw
-
- 0000002E  B8 00000000		     mov eax, 0
- 00000033  E8 00000000 E	     call SetTextColor
- 00000038  61			     popad
-
-				     ; 結束p1
-
-				     ;  p2 paddle 初始
- 00000039  60			     pushad
- 0000003A  8B 45 14		     mov eax, [p2X]
- 0000003D  8A 10		     mov dl, byte PTR [eax]
- 0000003F  8B 45 18		     mov eax, [p2Y]
- 00000042  8A 30		     mov dh, byte PTR [eax]
- 00000044  8B 45 1C		     mov eax, [paddleHeight]
- 00000047  8B 08		     mov ecx, [eax]
- 00000049			player2PaddleDraw:
+				          ; moved up, clear bottom line
+ 0000003F  8B 45 0C		     mov eax, p1X
+ 00000042  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 00000044  8B 45 10		     mov eax, p1Y
+ 00000047  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
  00000049  E8 00000000 E	     call Gotoxy
- 0000004E  B8 000000CE		     mov eax, yellow+(lightRed*16)
+ 0000004E  B8 00000000		     mov eax, 0                              ; bg_color = black
  00000053  E8 00000000 E	     call SetTextColor
+ 00000058  BA 00000000 R	     mov edx, OFFSET space
+ 0000005D  E8 00000000 E	     call WriteString                        ; clear bottom line
 
- 00000058  52			     push edx
- 00000059  8B 55 20		     mov edx, space
- 0000005C  E8 00000000 E	     call WriteString
- 00000061  5A			     pop edx
- 00000062  FE CE		     dec dh
- 00000064  E2 E3		     loop player2PaddleDraw
+				          ; moved up, create upper line.
+ 00000062  8B 45 0C		     mov eax, p1X
+ 00000065  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 00000067  8B 45 10		     mov eax, p1Y
+ 0000006A  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 0000006C  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 0000006F  E8 00000000 E	     call Gotoxy
+ 00000074  8B 45 08		     mov eax, color                   ; bg_color = black
+ 00000077  E8 00000000 E	     call SetTextColor
+ 0000007C  BA 00000000 R	     mov edx, OFFSET space
+ 00000081  E8 00000000 E	     call WriteString                        ; clear bottom line
 
- 00000066  B8 00000000		     mov eax, 0
- 0000006B  E8 00000000 E	     call SetTextColor
- 00000070  61			     popad
+ 00000086  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
+ 0000008C  E9 00000129		     jmp continueN
 
-				     ; 結束p2
+ 00000091			MoveDownP1:
+ 00000091  8B 5D 10		     mov ebx, p1Y
+ 00000094  8B 03			mov eax, [ebx]
+ 00000096  83 C0 01		     add eax, 1
+ 00000099  3B 45 24			cmp eax, roomLowerBorder
+ 0000009C  0F 83 00000118		jae continueN
+					     ; skip if player1 is below or equal to room's upper border
 
- 00000071  B2 00		     mov dl, 0
- 00000073  B6 00		     mov dh, 0
- 00000075  E8 00000000 E	     call Gotoxy
-				     
- 0000007A  60			     pushad
+				          ; moved up, delete upper line
+ 000000A2  8B 45 0C		     mov eax, p1X
+ 000000A5  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 000000A7  8B 45 10		     mov eax, p1Y
+ 000000AA  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 000000AC  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 000000AF  80 C6 01		     add dh, byte PTR 1
+ 000000B2  E8 00000000 E	     call Gotoxy
+ 000000B7  B8 00000000		     mov eax, 0                              ; bg_color = black
+ 000000BC  E8 00000000 E	     call SetTextColor                       ; set color to black
+ 000000C1  BA 00000000 R	     mov edx, OFFSET space
+ 000000C6  E8 00000000 E	     call WriteString                        ; clear bottom line
 
-				     ret
- 0000007F			ShowFirstTwoPaddles endp
+				          ; moved up, create lower line.
+ 000000CB  81 03 00000001	     add [ebx], dword PTR 1                  ; change actual coordinate in main
+ 000000D1  8B 45 0C		     mov eax, p1X
+ 000000D4  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 000000D6  8B 45 10		     mov eax, p1Y
+ 000000D9  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 000000DB  E8 00000000 E	     call Gotoxy
+ 000000E0  8B 45 08		     mov eax, color                   ; bg_color = color
+ 000000E3  E8 00000000 E	     call SetTextColor
+
+ 000000E8  BA 00000000 R	     mov edx, OFFSET space
+ 000000ED  E8 00000000 E	     call WriteString                        ; create bottom line
+
+ 000000F2  E9 000000C3		     jmp continueN
+
+ 000000F7			MoveUpP2:                                ; eax = p2Y
+ 000000F7  8B 5D 18		     mov ebx, p2Y
+ 000000FA  8B 03			mov eax, [ebx]
+ 000000FC  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
+ 000000FF  3B 45 20			cmp eax, playTopEdge
+ 00000102  0F 86 000000B2		jbe continueN
+					     ; skip if player2 is above or equal to room's upper border
+
+				          ; moved up, clear bottom line
+ 00000108  8B 45 14		     mov eax, p2X
+ 0000010B  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 0000010D  8B 45 18		     mov eax, p2Y
+ 00000110  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 00000112  E8 00000000 E	     call Gotoxy
+ 00000117  B8 00000000		     mov eax, 0                              ; bg_color = black
+ 0000011C  E8 00000000 E	     call SetTextColor
+ 00000121  BA 00000000 R	     mov edx, OFFSET space
+ 00000126  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+				          ; moved up, create upper line.
+ 0000012B  8B 45 14		     mov eax, p2X
+ 0000012E  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 00000130  8B 45 18		     mov eax, p2Y
+ 00000133  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 00000135  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 00000138  E8 00000000 E	     call Gotoxy
+ 0000013D  B8 000000CE		     mov eax, yellow+(lightRed*16)                    ; bg_color = black
+ 00000142  E8 00000000 E	     call SetTextColor
+ 00000147  BA 00000000 R	     mov edx, OFFSET space
+ 0000014C  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+ 00000151  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
+ 00000157  EB 61		     jmp continueN
+
+ 00000159			MoveDownP2:
+ 00000159  8B 5D 18		     mov ebx, p2Y
+ 0000015C  8B 03			mov eax, [ebx]
+ 0000015E  83 C0 01		     add eax, 1
+ 00000161  3B 45 24			cmp eax, roomLowerBorder
+ 00000164  73 54			jae continueN
+					     ; skip if player2 is below or equal to room's upper border
+
+				          ; moved up, delete upper line
+ 00000166  8B 45 14		     mov eax, p2X
+ 00000169  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 0000016B  8B 45 18		     mov eax, p2Y
+ 0000016E  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 00000170  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 00000173  80 C6 01		     add dh, byte PTR 1
+ 00000176  E8 00000000 E	     call Gotoxy
+ 0000017B  B8 00000000		     mov eax, 0                              ; bg_color = black
+ 00000180  E8 00000000 E	     call SetTextColor                       ; set color to black
+ 00000185  BA 00000000 R	     mov edx, OFFSET space
+ 0000018A  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+				          ; moved up, create lower line.
+ 0000018F  81 03 00000001	     add [ebx], dword PTR 1                  ; change actual coordinate in main
+ 00000195  8B 45 14		     mov eax, p2X
+ 00000198  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 0000019A  8B 45 18		     mov eax, p2Y
+ 0000019D  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 0000019F  E8 00000000 E	     call Gotoxy
+ 000001A4  B8 000000CE		     mov eax, yellow+(lightRed*16)                    ; bg_color = color
+ 000001A9  E8 00000000 E	     call SetTextColor
+
+ 000001AE  BA 00000000 R	     mov edx, OFFSET space
+ 000001B3  E8 00000000 E	     call WriteString                        ; create bottom line
+
+ 000001B8  EB 00		     jmp continueN
+
+ 000001BA			continueN:
+ 000001BA  61				popad
+					
+ 000001BB  B2 00		     mov dl, byte ptr 0h
+ 000001BD  B6 00		     mov dh, byte ptr 0h
+ 000001BF  E8 00000000 E	     call Gotoxy
+				     ; reset color
+ 000001C4  B8 00000000		     mov eax, 0
+ 000001C9  E8 00000000 E	     call SetTextColor
+					ret
+ 000001D2			CheckMovement endp
 				end
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/09/22 23:12:35
-_ShowFirstTwoPaddles.asm				     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/13/22 23:39:54
+_CheckMovement.asm					     Symbols 2 - 1
 
 
+
+
+Macros:
+
+                N a m e                 Type
+
+IsDefined  . . . . . . . . . . .	Func
+Startup  . . . . . . . . . . . .	Proc
+mDumpMem . . . . . . . . . . . .	Proc
+mDump  . . . . . . . . . . . . .	Proc
+mGotoxy  . . . . . . . . . . . .	Proc
+mReadString  . . . . . . . . . .	Proc
+mShowRegister  . . . . . . . . .	Proc
+mShow  . . . . . . . . . . . . .	Proc
+mWriteLn . . . . . . . . . . . .	Proc
+mWriteSpace  . . . . . . . . . .	Proc
+mWriteString . . . . . . . . . .	Proc
+mWrite . . . . . . . . . . . . .	Proc
 
 
 Structures and Unions:
@@ -270,15 +397,28 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000007F Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000002 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000001D2 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-CheckMovement  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CheckMovement  . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001D2 Public STDCALL
+  color  . . . . . . . . . . . .	DWord	 bp + 00000008
+  p1X  . . . . . . . . . . . . .	DWord	 bp + 0000000C
+  p1Y  . . . . . . . . . . . . .	DWord	 bp + 00000010
+  p2X  . . . . . . . . . . . . .	DWord	 bp + 00000014
+  p2Y  . . . . . . . . . . . . .	DWord	 bp + 00000018
+  paddleHeight . . . . . . . . .	DWord	 bp + 0000001C
+  playTopEdge  . . . . . . . . .	DWord	 bp + 00000020
+  roomLowerBorder  . . . . . . .	DWord	 bp + 00000024
+  MoveUpP1 . . . . . . . . . . .	L Near	 0000002E _TEXT	
+  MoveDownP1 . . . . . . . . . .	L Near	 00000091 _TEXT	
+  MoveUpP2 . . . . . . . . . . .	L Near	 000000F7 _TEXT	
+  MoveDownP2 . . . . . . . . . .	L Near	 00000159 _TEXT	
+  continueN  . . . . . . . . . .	L Near	 000001BA _TEXT	
 Chill  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -358,16 +498,7 @@ SetFilePointer . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 SetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ShowFPUStack . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ShowFirstTwoPaddles  . . . . . .	P Near	 00000000 _TEXT	Length= 0000007F Public STDCALL
-  color  . . . . . . . . . . . .	DWord	 bp + 00000008
-  p1X  . . . . . . . . . . . . .	DWord	 bp + 0000000C
-  p1Y  . . . . . . . . . . . . .	DWord	 bp + 00000010
-  p2X  . . . . . . . . . . . . .	DWord	 bp + 00000014
-  p2Y  . . . . . . . . . . . . .	DWord	 bp + 00000018
-  paddleHeight . . . . . . . . .	DWord	 bp + 0000001C
-  space  . . . . . . . . . . . .	DWord	 bp + 00000020
-  player1PaddleDraw  . . . . . .	L Near	 00000013 _TEXT	
-  player2PaddleDraw  . . . . . .	L Near	 00000049 _TEXT	
+ShowFirstTwoPaddles  . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Sleep  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 StrLength  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_compare  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -628,6 +759,7 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+space  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   

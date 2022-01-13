@@ -1,4 +1,5 @@
 include Irvine32.inc
+include Macros.inc
 
 DrawFrame proto,
     color: dword,						;GUI_COLOR
@@ -25,8 +26,8 @@ CheckMovement proto,
 	p2X: PTR dword,						; 玩家二 x座標
 	p2Y: PTR dword,						; 玩家二 y座標
 	paddleHeight: dword,
-	roomUpperBorder: dword,
-	roomLowerBorder: dword
+	playTopEdge: dword,
+	playLowEdge: dword
  
 DrawBall proto,
      color: dword,

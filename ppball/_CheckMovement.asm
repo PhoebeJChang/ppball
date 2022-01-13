@@ -12,30 +12,31 @@ CheckMovement proc,
 	p2X: PTR dword,						; x-coord
 	p2Y: PTR dword,						; y-coord
 	paddleHeight: dword,
-	roomUpperBorder: dword,
-	roomLowerBorder: dword
+	playTopEdge: dword,
+	playLowEdge: dword
     
     pushad
 	
      call ReadKey
-     je endit
+     je continueN
 
      cmp al, "w"
-     je CheckUpKeyP1
+     je MoveUpP1                ;p1 paddle向上
      cmp al, "s"
-     je CheckDownKeyP1
-     cmp al, "o"
-     je CheckUpKeyP2
-     cmp al, "l"
-     je CheckDownKeyP2
-     jmp endit
+     je MoveDownP1              ;p2 paddle向下
+     
+     cmp ah, 48h                ;向上鍵
+     je MoveUpP2                ;p2 paddle向上
+     cmp ah, 50h                ;向下鍵
+     je MoveDownP2              ;p2 paddle向下
+     jmp continueN
 
-CheckUpKeyP1:                                ; eax = p1Y
+MoveUpP1:                                ; eax = p1Y
      mov ebx, p1Y
 	mov eax, [ebx]
 	sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
-	cmp eax, roomUpperBorder
-	jbe endit
+	cmp eax, playTopEdge
+	jbe continueN
 	     ; skip if player1 is above or equal to room's upper border
 
           ; moved up, clear bottom line
@@ -56,20 +57,20 @@ CheckUpKeyP1:                                ; eax = p1Y
      mov dh, byte PTR [eax]                  ; y coordinate
      sub dh, byte PTR [paddleHeight]
      call Gotoxy
-     mov eax, white+(lightCyan*16)                    ; bg_color = black
+     mov eax, color                   ; bg_color = black
      call SetTextColor
      mov edx, OFFSET space
      call WriteString                        ; clear bottom line
 
      sub [ebx], dword PTR 1                  ; change actual coordinate in main
-     jmp endit
+     jmp continueN
 
-CheckDownKeyP1:
+MoveDownP1:
      mov ebx, p1Y
 	mov eax, [ebx]
      add eax, 1
-	cmp eax, roomLowerBorder
-	jae endit
+	cmp eax, playLowEdge
+	jae continueN
 	     ; skip if player1 is below or equal to room's upper border
 
           ; moved up, delete upper line
@@ -98,14 +99,14 @@ CheckDownKeyP1:
      mov edx, OFFSET space
      call WriteString                        ; create bottom line
 
-     jmp endit
+     jmp continueN
 
-CheckUpKeyP2:                                ; eax = p2Y
+MoveUpP2:                                ; eax = p2Y
      mov ebx, p2Y
 	mov eax, [ebx]
 	sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
-	cmp eax, roomUpperBorder
-	jbe endit
+	cmp eax, playTopEdge
+	jbe continueN
 	     ; skip if player2 is above or equal to room's upper border
 
           ; moved up, clear bottom line
@@ -126,20 +127,20 @@ CheckUpKeyP2:                                ; eax = p2Y
      mov dh, byte PTR [eax]                  ; y coordinate
      sub dh, byte PTR [paddleHeight]
      call Gotoxy
-     mov eax, color                    ; bg_color = black
+     mov eax, yellow+(lightRed*16)                    ; bg_color = black
      call SetTextColor
      mov edx, OFFSET space
      call WriteString                        ; clear bottom line
 
      sub [ebx], dword PTR 1                  ; change actual coordinate in main
-     jmp endit
+     jmp continueN
 
-CheckDownKeyP2:
-     mov ebx, p2Y
+MoveDownP2:
+    mov ebx, p2Y
 	mov eax, [ebx]
-     add eax, 1
-	cmp eax, roomLowerBorder
-	jae endit
+    add eax, 1
+	cmp eax, playLowEdge
+	jae continueN
 	     ; skip if player2 is below or equal to room's upper border
 
           ; moved up, delete upper line
@@ -162,15 +163,15 @@ CheckDownKeyP2:
      mov eax, p2Y
      mov dh, byte PTR [eax]                  ; y coordinate
      call Gotoxy
-     mov eax, color                    ; bg_color = color
+     mov eax, yellow+(lightRed*16)                    ; bg_color = color
      call SetTextColor
 
      mov edx, OFFSET space
      call WriteString                        ; create bottom line
 
-     jmp endit
+     jmp continueN
 
-endit:
+continueN:
 	popad
 	
      mov dl, byte ptr 0h

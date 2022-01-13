@@ -18,8 +18,8 @@ FRAME_RATE equ 80d                          ;³t«×
 ;menu byte "hellooooooooooooooo", 0
 
 ; for passing into prototypes
-roomUpperBorder dword (PLAY_T_EDGE_OFFSET)
-roomLowerBorder dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
+playTopEdge dword (PLAY_T_EDGE_OFFSET)
+playLowEdge dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
 
 ; ball and paddle tracking
 xCoordBall dword PLAY_L_EDGE_OFFSET + 30
@@ -63,7 +63,7 @@ MainLoop:
 
      ; check for movement and redraw paddle accordingly
      invoke CheckMovement, PADDLE_COLOR, addr player1x, addr player1Y, addr player2X, addr player2y, paddleHeight, 
-                            roomUpperBorder, roomLowerBorder
+                            playTopEdge, playLowEdge
 	jmp MainLoop
 	
 	

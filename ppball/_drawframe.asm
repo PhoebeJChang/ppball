@@ -21,7 +21,7 @@ DrawFrame proc,
 	pushad
 	     
 	; first, the top border
-     ; set the the background color
+    ; set the the background color
 	mov eax, color
 	call SetTextColor
 	; place the cursor at the top left edge of the board
@@ -46,7 +46,7 @@ L2: call WriteString
     ; place the cursor at the start of the bottom border
     push eax
     push edx
-    add eax, boardsinBetween
+    add eax, boardsinBetween			; 
     mov dh, al
 	mov dl, bl
 	call Gotoxy
