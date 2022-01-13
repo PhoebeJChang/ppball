@@ -10,7 +10,7 @@ ShowFirstTwoPaddles proc,
 	p2X: PTR dword,						; x座標
 	p2Y: PTR dword,						; y座標
 	paddleHeight: dword,                        ;paddle 高度
-     space: ptr byte 
+    space: ptr byte 
      
      pushad 
      ; p1 paddle 初始

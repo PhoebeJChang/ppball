@@ -19,7 +19,7 @@ ShowFirstTwoPaddles proto,
 	paddleHeight: dword,                ;paddle 高度
     space: ptr byte
 
-CheckMovement proto,
+ReadKey proto,
     color: dword,
 	p1X: PTR dword,						; 玩家一 x座標
 	p1Y: PTR dword,						; 玩家一 y座標
@@ -31,8 +31,8 @@ CheckMovement proto,
  
 DrawBall proto,
      color: dword,
-     xCoordBall: ptr dword,
-     yCoordBall: ptr dword,
+     Ball_X: ptr dword,
+     Ball_Y: ptr dword,
      xRun: ptr dword,
 	yRise: ptr dword
 
@@ -51,25 +51,25 @@ DrawScore proto,
     p2string: ptr dword
 
  UpdateBall proto,
-    xCoordBall: ptr dword,
-    yCoordBall: ptr dword,
-    color: dword,
+    Ball_X: ptr dword,			;球X座標
+    Ball_Y: ptr dword,			;球Y座標
+    color: dword,				;BALL_COLOR
     xRun: ptr dword,
 	yRise: ptr dword,
 	space: ptr byte,
 	playTopEdgeOffset: dword,
 	boardsinBetween: dword,
-    leftPaddleX: dword,
-    leftPaddleY: dword,
-    rightPaddleX: dword,
-    rightPaddleY: dword,
+    p1X: dword,
+    p1Y: dword,
+    p2X: dword,
+    p2Y: dword,
 	paddleHeight: dword
 	
 ResetBall proto,
-	xCoordBall: ptr dword,
-	yCoordBall: ptr dword,
-	newXCoordBall: dword,
-	newYCoordBall: dword,
+	Ball_X: ptr dword,
+	Ball_Y: ptr dword,
+	newBall_X: dword,
+	newBall_Y: dword,
 	xRun: ptr dword,
 	yRise: ptr dword
  

@@ -1,11 +1,11 @@
-; (_CheckMovement.asm)
+; (_ReadKey.asm)
 
 include ppball.inc
 .data
-space byte " ", 0
+space byte "*", 0                       ;用空白填滿
 
 .code 
-CheckMovement proc,
+ReadKey proc,
      color: dword,
 	p1X: PTR dword,						; x-coord
 	p1Y: PTR dword,						; y-coord
@@ -29,6 +29,7 @@ CheckMovement proc,
      je MoveUpP2                ;p2 paddle向上
      cmp ah, 50h                ;向下鍵
      je MoveDownP2              ;p2 paddle向下
+
      jmp continueN
 
 MoveUpP1:                                ; eax = p1Y
@@ -181,5 +182,5 @@ continueN:
      mov eax, 0
      call SetTextColor
 	ret
-CheckMovement endp
+ReadKey endp
 end

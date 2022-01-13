@@ -148,7 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <MASM Include="ppball.asm" />
-    <MASM Include="_CheckMovement.asm" />
+    <MASM Include="_ReadKey.asm" />
     <MASM Include="_chill.asm" />
     <MASM Include="_drawframe.asm" />
     <MASM Include="_ShowFirstTwoPaddles.asm" />
