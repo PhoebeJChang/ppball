@@ -28,20 +28,22 @@ UpdateBall proc,
 	ja Reset			;如果超過則跳去reset
 	;player1 分數此時要加一 inc p1+1!!!!!!!!!!!!!!!!!!
 
-	; 左邊範圍: 如果球跑出範圍，reset
+	; 左邊範圍
 	mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
 	sub ebx, 5			;比邊框再進去一點點
 	cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
 
 	ja CollisionTesting
-	;player2 分數此時要加一 inc p1+1!!!!!!!!!!!!!!!!!!
+	;player2 分數此時要加一 inc p2+1!!!!!!!!!!!!!!!!!!
+
 Reset:
+	;球起始點設定
 	mov eax, playTopEdgeOffset
 	add eax, 10
 	mov ebx, p1X
 	add ebx, 40
 	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise
-	jmp Endit
+	jmp ContinueN
 	
 CollisionTesting:
     ; if the ball is beyond the paddles, let it go checking that here
@@ -209,7 +211,7 @@ UpdateCoords:
     ; move the cursor back to 0 to get it out of the gamespace
     mov edx, 0
     call Gotoxy
-Endit:
+ContinueN:
 	popad
 	ret
 
