@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 04:10:59
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 04:22:43
 _ReadKeyBoard.asm					     Page 1 - 1
 
 
@@ -120,7 +120,7 @@ _ReadKeyBoard.asm					     Page 1 - 1
  00000003  60			    pushad
 					
  00000004  E8 00000000 E	     call ReadKey
- 00000009  0F 84 000001B9	     je continueN
+ 00000009  0F 84 000001C8	     je continueN
 
  0000000F  3C 77		     cmp al, "w"
  00000011  74 1B		     je MoveUpP1                ;p1 paddle向上
@@ -132,14 +132,14 @@ _ReadKeyBoard.asm					     Page 1 - 1
  00000020  80 FC 50		     cmp ah, 50h                ;向下鍵
  00000023  0F 84 00000130	     je MoveDownP2              ;p2 paddle向下
 
- 00000029  E9 0000019A		     jmp continueN
+ 00000029  E9 000001A9		     jmp continueN
 
  0000002E			MoveUpP1:                                ; eax = p1Y
  0000002E  8B 5D 10		     mov ebx, p1Y
  00000031  8B 03			mov eax, [ebx]
  00000033  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
  00000036  3B 45 20			cmp eax, playTopEdge
- 00000039  0F 86 00000189		jbe continueN
+ 00000039  0F 86 00000198		jbe continueN
 					     ; skip if player1 is above or equal to room's upper border
 
 				          ; moved up, clear bottom line
@@ -166,14 +166,14 @@ _ReadKeyBoard.asm					     Page 1 - 1
  00000081  E8 00000000 E	     call WriteString                        ; clear bottom line
 
  00000086  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
- 0000008C  E9 00000137		     jmp continueN
+ 0000008C  E9 00000146		     jmp continueN
 
  00000091			MoveDownP1:
  00000091  8B 5D 10		     mov ebx, p1Y
  00000094  8B 03			mov eax, [ebx]
  00000096  83 C0 01		     add eax, 1
  00000099  3B 45 24			cmp eax, playLowEdge
- 0000009C  0F 83 00000126		jae continueN
+ 0000009C  0F 83 00000135		jae continueN
 					     ; skip if player1 is below or equal to room's upper border
 
 				          ; moved up, delete upper line
@@ -202,14 +202,14 @@ _ReadKeyBoard.asm					     Page 1 - 1
  000000E8  BA 00000000 R	     mov edx, OFFSET space
  000000ED  E8 00000000 E	     call WriteString                        ; create bottom line
 
- 000000F2  E9 000000D1		     jmp continueN
+ 000000F2  E9 000000E0		     jmp continueN
 
  000000F7			MoveUpP2:                                ; eax = p2Y
  000000F7  8B 5D 18		     mov ebx, p2Y
  000000FA  8B 03			mov eax, [ebx]
  000000FC  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
  000000FF  3B 45 20			cmp eax, playTopEdge
- 00000102  0F 86 000000C0		jbe continueN
+ 00000102  0F 86 000000CF		jbe continueN
 					     ; skip if player2 is above or equal to room's upper border
 
 				          ; moved up, clear bottom line
@@ -236,14 +236,14 @@ _ReadKeyBoard.asm					     Page 1 - 1
  0000014C  E8 00000000 E	     call WriteString                        ; clear bottom line
 
  00000151  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
- 00000157  EB 6F		     jmp continueN
+ 00000157  EB 7E		     jmp continueN
 
  00000159			MoveDownP2:
  00000159  8B 5D 18		    mov ebx, p2Y
  0000015C  8B 03			mov eax, [ebx]
  0000015E  83 C0 01		    add eax, 1
  00000161  3B 45 24			cmp eax, playLowEdge
- 00000164  73 62			jae continueN
+ 00000164  73 71			jae continueN
 					     ; skip if player2 is below or equal to room's upper border
 
 				          ; moved up, delete upper line
@@ -261,42 +261,47 @@ _ReadKeyBoard.asm					     Page 1 - 1
 
 				          ; moved up, create lower line.
  0000018F  81 03 00000001	     add [ebx], dword PTR 1                  ; change actual coordinate in main
-				     mGotoxy OFFSET p2X, OFFSET p2Y
+				     mGotoxy p2X, p2Y
  00000195  52		     1		push edx
-			     1		mov  dh,OFFSET p2Y
-_ReadKeyBoard.asm(162) : error A2098:invalid operand for OFFSET
+			     1		mov  dh,p2Y
+_ReadKeyBoard.asm(162) : error A2022:instruction operands must be the same size
  mGotoxy(7): Macro Called From
   _ReadKeyBoard.asm(162): Main Line Code
-			     1		mov  dl,OFFSET p2X
-_ReadKeyBoard.asm(162) : error A2098:invalid operand for OFFSET
+			     1		mov  dl,p2X
+_ReadKeyBoard.asm(162) : error A2022:instruction operands must be the same size
  mGotoxy(8): Macro Called From
   _ReadKeyBoard.asm(162): Main Line Code
  00000196  E8 00000000 E     1		call Gotoxy
  0000019B  5A		     1		pop  edx
- 0000019C  B8 000000CE		     mov eax, yellow+(lightRed*16)                    ; bg_color = color
- 000001A1  E8 00000000 E	     call SetTextColor
+ 0000019C  8B 45 14		     mov eax, p2X
+ 0000019F  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 000001A1  8B 45 18		     mov eax, p2Y
+ 000001A4  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 000001A6  E8 00000000 E	     call Gotoxy
+ 000001AB  B8 000000CE		     mov eax, yellow+(lightRed*16)                    ; bg_color = color
+ 000001B0  E8 00000000 E	     call SetTextColor
 
- 000001A6  BA 00000000 R	     mov edx, OFFSET space
- 000001AB  E8 00000000 E	     call WriteString                        ; create bottom line
+ 000001B5  BA 00000000 R	     mov edx, OFFSET space
+ 000001BA  E8 00000000 E	     call WriteString                        ; create bottom line
 
- 000001B0  EB 16		     jmp continueN
+ 000001BF  EB 16		     jmp continueN
 
- 000001C8			continueN:
- 000001C8  61				popad
+ 000001D7			continueN:
+ 000001D7  61				popad
 					;要把多出來的東西用黑色
 				     mGotoxy 0h,0h
- 000001C9  52		     1		push edx
- 000001CA  B6 00	     1		mov  dh,0h
- 000001CC  B2 00	     1		mov  dl,0h
- 000001CE  E8 00000000 E     1		call Gotoxy
- 000001D3  5A		     1		pop  edx
+ 000001D8  52		     1		push edx
+ 000001D9  B6 00	     1		mov  dh,0h
+ 000001DB  B2 00	     1		mov  dl,0h
+ 000001DD  E8 00000000 E     1		call Gotoxy
+ 000001E2  5A		     1		pop  edx
 				     ; reset color
- 000001D4  B8 00000000		     mov eax, 0
- 000001D9  E8 00000000 E	     call SetTextColor
+ 000001E3  B8 00000000		     mov eax, 0
+ 000001E8  E8 00000000 E	     call SetTextColor
 					ret
- 000001E2			ReadKeyBoard endp
+ 000001F1			ReadKeyBoard endp
 				end
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 04:10:59
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 04:22:43
 _ReadKeyBoard.asm					     Symbols 2 - 1
 
 
@@ -409,7 +414,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000002 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000001E2 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000001F1 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -480,7 +485,7 @@ ReadFloat  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadFromFile . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadHex  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001E2 Public STDCALL
+ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001F1 Public STDCALL
   color  . . . . . . . . . . . .	DWord	 bp + 00000008
   p1X  . . . . . . . . . . . . .	DWord	 bp + 0000000C
   p1Y  . . . . . . . . . . . . .	DWord	 bp + 00000010
@@ -493,7 +498,7 @@ ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001E2 Public 
   MoveDownP1 . . . . . . . . . .	L Near	 00000091 _TEXT	
   MoveUpP2 . . . . . . . . . . .	L Near	 000000F7 _TEXT	
   MoveDownP2 . . . . . . . . . .	L Near	 00000159 _TEXT	
-  continueN  . . . . . . . . . .	L Near	 000001C8 _TEXT	
+  continueN  . . . . . . . . . .	L Near	 000001D7 _TEXT	
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL

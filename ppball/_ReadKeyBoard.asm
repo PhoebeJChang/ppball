@@ -159,7 +159,7 @@ MoveDownP2:
 
           ; moved up, create lower line.
      add [ebx], dword PTR 1                  ; change actual coordinate in main
-     mGotoxy p2X, p2Y
+     ;mGotoxy p2X, p2Y
      mov eax, p2X
      mov dl, byte PTR [eax]                  ; x coordinate
      mov eax, p2Y
