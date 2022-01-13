@@ -18,7 +18,7 @@
     <MASM Include="ppball.asm">
       <Filter>Header Files</Filter>
     </MASM>
-    <MASM Include="_ReadKey.asm">
+    <MASM Include="_ReadKeyBoard.asm">
       <Filter>Header Files</Filter>
     </MASM>
     <MASM Include="_ShowFirstTwoPaddles.asm">

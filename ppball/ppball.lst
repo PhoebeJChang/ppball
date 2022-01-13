@@ -1,6 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 02:37:27
-ppball.asm						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 04:10:59
+_ReadKeyBoard.asm					     Page 1 - 1
 
+
+				; (_ReadKeyBoard.asm)
 
 				include ppball.inc
 			      C include Irvine32.inc
@@ -44,7 +46,7 @@ ppball.asm						     Page 1 - 1
 			      C 	paddleHeight: dword,                ;paddle 高度
 			      C     space: ptr byte
 			      C 
-			      C CheckMovement proto,
+			      C ReadKeyBoard proto,
 			      C     color: dword,
 			      C 	p1X: PTR dword,						; 玩家一 x座標
 			      C 	p1Y: PTR dword,						; 玩家一 y座標
@@ -101,81 +103,201 @@ ppball.asm						     Page 1 - 1
 			      C Chill proto,
 			      C      timedu: dword
 			      C 
-
-				; 框架大小和顏色宣告
- = 00000005			PLAY_T_EDGE_OFFSET equ 5d
- = 00000014			PLAY_L_EDGE_OFFSET equ 20d
- = 00000050			BOARD_R_LENGTH equ 80d                      ;長row
- = 00000001			BOARD_C_LENGTH equ 1d                       ;寬cloumn
- = 00000019			BOARD_BETWEEN equ 25d                       ;板子間距離
-
- = 0000000F			GUI_TEXT_COLOR equ (white)
- = 0000007D			GUI_COLOR equ lightMagenta+(lightGray * 16)      ;上下板子顏色
- = 000000B1			PADDLE_COLOR equ blue+(lightCyan * 16)           ;左右paddle color
- = 000000E0			BALL_COLOR equ black+(yellow * 16)
-
- = 00000064			FRAME_RATE equ 100d                          ;速度
-
  00000000			.data
-				;menu byte "hellooooooooooooooo", 0
+ 00000000 2A 00			space byte "*", 0                       ;用空白填滿
 
-				; for passing into prototypes
- 00000000 00000005		playTopEdge dword (PLAY_T_EDGE_OFFSET)
- 00000004 0000001E		playLowEdge dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
-
-				; ball and paddle tracking
- 00000008 00000032		Ball_X dword PLAY_L_EDGE_OFFSET + 30
- 0000000C 00000014		Ball_Y dword PLAY_T_EDGE_OFFSET + 15
- 00000010 00000002		xRun dword 2
- 00000014 00000001		yRise dword 1
-
-				; 填滿東東String
- 00000018 20 00			space byte " ", 0
- 0000001A 2A 00			spacePaddle byte "*",0
- 0000001C 02			buffer byte 2h            ;球球實心笑臉
-
- 0000001D 00000014		player1X dword (PLAY_L_EDGE_OFFSET)                 ;設定p1 paddle 位置在左側邊邊
- 00000021 00000013		player1Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
- 00000025 00000063		player2X dword (PLAY_L_EDGE_OFFSET + BOARD_R_LENGTH - 1)
- 00000029 00000013		player2Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
-
- 0000002D 00000005		paddleHeight dword 5d       ;paddle長
-
-
-
-				; gui information 玩家計分
-				;p1scoreString byte "Player 1 score:", 0
-				;p2scoreString byte "Player 2 score:", 0
-				;p1score dword 0
-				;p2score dword 0
-
- 00000000			.code
- 00000000			main proc
- 00000000  B8 00000000		     mov eax, 0
- 00000005  E8 00000000 E	     call SetTextColor
-				     invoke DrawFrame, GUI_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
-
-				     invoke ShowFirstTwoPaddles, PADDLE_COLOR, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr spacePaddle
-
- 00000048  B9 00000001		     mov ecx, 1
- 0000004D			MainLoop:
-					 invoke UpdateBall, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
-				                        BOARD_BETWEEN, player1X, player1Y, player2X, player2Y, paddleHeight
- 00000092  41			     inc ecx ; increment ecx to keep the loop going...when the ball goes out of bounds, set ecx to 0 so the inner loop can finish
-				     invoke Chill, FRAME_RATE
-				     invoke GetStdHandle, 
-ppball.asm(64) : error A2008:syntax error : in directive
-				     ; check for movement and redraw paddle accordingly
-				     invoke CheckMovement, PADDLE_COLOR, addr player1x, addr player1Y, addr player2X, addr player2y, paddleHeight, 
-				                            playTopEdge, playLowEdge
- 000000CA  EB 81			jmp MainLoop
+ 00000000			.code 
+ 00000000			ReadKeyBoard proc,
+				     color: dword,
+					p1X: PTR dword,						; x-coord
+					p1Y: PTR dword,						; y-coord
+					p2X: PTR dword,						; x-coord
+					p2Y: PTR dword,						; y-coord
+					paddleHeight: dword,
+					playTopEdge: dword,
+					playLowEdge: dword
+				    
+ 00000003  60			    pushad
 					
-					
-				     exit
- 000000D3			main endp
-				end main
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 02:37:27
-ppball.asm						     Symbols 2 - 1
+ 00000004  E8 00000000 E	     call ReadKey
+ 00000009  0F 84 000001B9	     je continueN
+
+ 0000000F  3C 77		     cmp al, "w"
+ 00000011  74 1B		     je MoveUpP1                ;p1 paddle向上
+ 00000013  3C 73		     cmp al, "s"
+ 00000015  74 7A		     je MoveDownP1              ;p2 paddle向下
+				     
+ 00000017  80 FC 48		     cmp ah, 48h                ;向上鍵
+ 0000001A  0F 84 000000D7	     je MoveUpP2                ;p2 paddle向上
+ 00000020  80 FC 50		     cmp ah, 50h                ;向下鍵
+ 00000023  0F 84 00000130	     je MoveDownP2              ;p2 paddle向下
+
+ 00000029  E9 0000019A		     jmp continueN
+
+ 0000002E			MoveUpP1:                                ; eax = p1Y
+ 0000002E  8B 5D 10		     mov ebx, p1Y
+ 00000031  8B 03			mov eax, [ebx]
+ 00000033  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
+ 00000036  3B 45 20			cmp eax, playTopEdge
+ 00000039  0F 86 00000189		jbe continueN
+					     ; skip if player1 is above or equal to room's upper border
+
+				          ; moved up, clear bottom line
+ 0000003F  8B 45 0C		     mov eax, p1X
+ 00000042  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 00000044  8B 45 10		     mov eax, p1Y
+ 00000047  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 00000049  E8 00000000 E	     call Gotoxy
+ 0000004E  B8 00000000		     mov eax, 0                              ; bg_color = black
+ 00000053  E8 00000000 E	     call SetTextColor
+ 00000058  BA 00000000 R	     mov edx, OFFSET space
+ 0000005D  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+				          ; moved up, create upper line.
+ 00000062  8B 45 0C		     mov eax, p1X
+ 00000065  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 00000067  8B 45 10		     mov eax, p1Y
+ 0000006A  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 0000006C  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 0000006F  E8 00000000 E	     call Gotoxy
+ 00000074  8B 45 08		     mov eax, color                   ; bg_color = black
+ 00000077  E8 00000000 E	     call SetTextColor
+ 0000007C  BA 00000000 R	     mov edx, OFFSET space
+ 00000081  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+ 00000086  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
+ 0000008C  E9 00000137		     jmp continueN
+
+ 00000091			MoveDownP1:
+ 00000091  8B 5D 10		     mov ebx, p1Y
+ 00000094  8B 03			mov eax, [ebx]
+ 00000096  83 C0 01		     add eax, 1
+ 00000099  3B 45 24			cmp eax, playLowEdge
+ 0000009C  0F 83 00000126		jae continueN
+					     ; skip if player1 is below or equal to room's upper border
+
+				          ; moved up, delete upper line
+ 000000A2  8B 45 0C		     mov eax, p1X
+ 000000A5  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 000000A7  8B 45 10		     mov eax, p1Y
+ 000000AA  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 000000AC  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 000000AF  80 C6 01		     add dh, byte PTR 1
+ 000000B2  E8 00000000 E	     call Gotoxy
+ 000000B7  B8 00000000		     mov eax, 0                              ; bg_color = black
+ 000000BC  E8 00000000 E	     call SetTextColor                       ; set color to black
+ 000000C1  BA 00000000 R	     mov edx, OFFSET space
+ 000000C6  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+				          ; moved up, create lower line.
+ 000000CB  81 03 00000001	     add [ebx], dword PTR 1                  ; change actual coordinate in main
+ 000000D1  8B 45 0C		     mov eax, p1X
+ 000000D4  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 000000D6  8B 45 10		     mov eax, p1Y
+ 000000D9  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 000000DB  E8 00000000 E	     call Gotoxy
+ 000000E0  8B 45 08		     mov eax, color                   ; bg_color = color
+ 000000E3  E8 00000000 E	     call SetTextColor
+
+ 000000E8  BA 00000000 R	     mov edx, OFFSET space
+ 000000ED  E8 00000000 E	     call WriteString                        ; create bottom line
+
+ 000000F2  E9 000000D1		     jmp continueN
+
+ 000000F7			MoveUpP2:                                ; eax = p2Y
+ 000000F7  8B 5D 18		     mov ebx, p2Y
+ 000000FA  8B 03			mov eax, [ebx]
+ 000000FC  2B 45 1C			sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
+ 000000FF  3B 45 20			cmp eax, playTopEdge
+ 00000102  0F 86 000000C0		jbe continueN
+					     ; skip if player2 is above or equal to room's upper border
+
+				          ; moved up, clear bottom line
+ 00000108  8B 45 14		     mov eax, p2X
+ 0000010B  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 0000010D  8B 45 18		     mov eax, p2Y
+ 00000110  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 00000112  E8 00000000 E	     call Gotoxy
+ 00000117  B8 00000000		     mov eax, 0                              ; bg_color = black
+ 0000011C  E8 00000000 E	     call SetTextColor
+ 00000121  BA 00000000 R	     mov edx, OFFSET space
+ 00000126  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+				          ; moved up, create upper line.
+ 0000012B  8B 45 14		     mov eax, p2X
+ 0000012E  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 00000130  8B 45 18		     mov eax, p2Y
+ 00000133  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 00000135  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 00000138  E8 00000000 E	     call Gotoxy
+ 0000013D  B8 000000CE		     mov eax, yellow+(lightRed*16)                    ; bg_color = black
+ 00000142  E8 00000000 E	     call SetTextColor
+ 00000147  BA 00000000 R	     mov edx, OFFSET space
+ 0000014C  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+ 00000151  81 2B 00000001	     sub [ebx], dword PTR 1                  ; change actual coordinate in main
+ 00000157  EB 6F		     jmp continueN
+
+ 00000159			MoveDownP2:
+ 00000159  8B 5D 18		    mov ebx, p2Y
+ 0000015C  8B 03			mov eax, [ebx]
+ 0000015E  83 C0 01		    add eax, 1
+ 00000161  3B 45 24			cmp eax, playLowEdge
+ 00000164  73 62			jae continueN
+					     ; skip if player2 is below or equal to room's upper border
+
+				          ; moved up, delete upper line
+ 00000166  8B 45 14		     mov eax, p2X
+ 00000169  8A 10		     mov dl, byte PTR [eax]                  ; x coordinate
+ 0000016B  8B 45 18		     mov eax, p2Y
+ 0000016E  8A 30		     mov dh, byte PTR [eax]                  ; y coordinate
+ 00000170  2A 75 1C		     sub dh, byte PTR [paddleHeight]
+ 00000173  80 C6 01		     add dh, byte PTR 1
+ 00000176  E8 00000000 E	     call Gotoxy
+ 0000017B  B8 00000000		     mov eax, 0                              ; bg_color = black
+ 00000180  E8 00000000 E	     call SetTextColor                       ; set color to black
+ 00000185  BA 00000000 R	     mov edx, OFFSET space
+ 0000018A  E8 00000000 E	     call WriteString                        ; clear bottom line
+
+				          ; moved up, create lower line.
+ 0000018F  81 03 00000001	     add [ebx], dword PTR 1                  ; change actual coordinate in main
+				     mGotoxy OFFSET p2X, OFFSET p2Y
+ 00000195  52		     1		push edx
+			     1		mov  dh,OFFSET p2Y
+_ReadKeyBoard.asm(162) : error A2098:invalid operand for OFFSET
+ mGotoxy(7): Macro Called From
+  _ReadKeyBoard.asm(162): Main Line Code
+			     1		mov  dl,OFFSET p2X
+_ReadKeyBoard.asm(162) : error A2098:invalid operand for OFFSET
+ mGotoxy(8): Macro Called From
+  _ReadKeyBoard.asm(162): Main Line Code
+ 00000196  E8 00000000 E     1		call Gotoxy
+ 0000019B  5A		     1		pop  edx
+ 0000019C  B8 000000CE		     mov eax, yellow+(lightRed*16)                    ; bg_color = color
+ 000001A1  E8 00000000 E	     call SetTextColor
+
+ 000001A6  BA 00000000 R	     mov edx, OFFSET space
+ 000001AB  E8 00000000 E	     call WriteString                        ; create bottom line
+
+ 000001B0  EB 16		     jmp continueN
+
+ 000001C8			continueN:
+ 000001C8  61				popad
+					;要把多出來的東西用黑色
+				     mGotoxy 0h,0h
+ 000001C9  52		     1		push edx
+ 000001CA  B6 00	     1		mov  dh,0h
+ 000001CC  B2 00	     1		mov  dl,0h
+ 000001CE  E8 00000000 E     1		call Gotoxy
+ 000001D3  5A		     1		pop  edx
+				     ; reset color
+ 000001D4  B8 00000000		     mov eax, 0
+ 000001D9  E8 00000000 E	     call SetTextColor
+					ret
+ 000001E2			ReadKeyBoard endp
+				end
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 04:10:59
+_ReadKeyBoard.asm					     Symbols 2 - 1
 
 
 
@@ -286,15 +408,14 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000031 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000D3 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000002 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000001E2 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-CheckMovement  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Chill  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -359,6 +480,20 @@ ReadFloat  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadFromFile . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadHex  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001E2 Public STDCALL
+  color  . . . . . . . . . . . .	DWord	 bp + 00000008
+  p1X  . . . . . . . . . . . . .	DWord	 bp + 0000000C
+  p1Y  . . . . . . . . . . . . .	DWord	 bp + 00000010
+  p2X  . . . . . . . . . . . . .	DWord	 bp + 00000014
+  p2Y  . . . . . . . . . . . . .	DWord	 bp + 00000018
+  paddleHeight . . . . . . . . .	DWord	 bp + 0000001C
+  playTopEdge  . . . . . . . . .	DWord	 bp + 00000020
+  playLowEdge  . . . . . . . . .	DWord	 bp + 00000024
+  MoveUpP1 . . . . . . . . . . .	L Near	 0000002E _TEXT	
+  MoveDownP1 . . . . . . . . . .	L Near	 00000091 _TEXT	
+  MoveUpP2 . . . . . . . . . . .	L Near	 000000F7 _TEXT	
+  MoveDownP2 . . . . . . . . . .	L Near	 00000159 _TEXT	
+  continueN  . . . . . . . . . .	L Near	 000001C8 _TEXT	
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -402,8 +537,6 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000D3 Public STDCALL
-  MainLoop . . . . . . . . . . .	L Near	 0000004D _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -423,12 +556,6 @@ Symbols:
 @fardata . . . . . . . . . . . .	Text   	 FLAT
 @stack . . . . . . . . . . . . .	Text   	 FLAT
 ALT_MASK . . . . . . . . . . . .	Number	 00000003h   
-BALL_COLOR . . . . . . . . . . .	Number	 000000E0h   
-BOARD_BETWEEN  . . . . . . . . .	Number	 00000019h   
-BOARD_C_LENGTH . . . . . . . . .	Number	 00000001h   
-BOARD_R_LENGTH . . . . . . . . .	Number	 00000050h   
-Ball_X . . . . . . . . . . . . .	DWord	 00000008 _DATA	
-Ball_Y . . . . . . . . . . . . .	DWord	 0000000C _DATA	
 CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h   
 CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
 CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
@@ -471,14 +598,11 @@ FILE_WRITE_DATA  . . . . . . . .	Number	 00000002h
 FOCUS_EVENT  . . . . . . . . . .	Number	 00000010h   
 FORMAT_MESSAGE_ALLOCATE_BUFFER .	Number	 00000100h   
 FORMAT_MESSAGE_FROM_SYSTEM . . .	Number	 00001000h   
-FRAME_RATE . . . . . . . . . . .	Number	 00000064h   
 FormatMessage  . . . . . . . . .	Text   	 FormatMessageA
 GENERIC_ALL  . . . . . . . . . .	Number	 10000000h   
 GENERIC_EXECUTE  . . . . . . . .	Number	 20000000h   
 GENERIC_READ . . . . . . . . . .	Number	 -80000000h   
 GENERIC_WRITE  . . . . . . . . .	Number	 40000000h   
-GUI_COLOR  . . . . . . . . . . .	Number	 0000007Dh   
-GUI_TEXT_COLOR . . . . . . . . .	Number	 0000000Fh   
 GetCommandLine . . . . . . . . .	Text   	 GetCommandLineA
 HANDLE . . . . . . . . . . . . .	Text   	 DWORD
 HEAP_GENERATE_EXCEPTIONS . . . .	Number	 00000004h   
@@ -535,9 +659,6 @@ NULL . . . . . . . . . . . . . .	Number	 00000000h
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
 OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
 OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
-PADDLE_COLOR . . . . . . . . . .	Number	 000000B1h   
-PLAY_L_EDGE_OFFSET . . . . . . .	Number	 00000014h   
-PLAY_T_EDGE_OFFSET . . . . . . .	Number	 00000005h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
 RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
 RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
@@ -637,7 +758,6 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-buffer . . . . . . . . . . . . .	Byte	 0000001C _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -649,21 +769,11 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-paddleHeight . . . . . . . . . .	DWord	 0000002D _DATA	
-playLowEdge  . . . . . . . . . .	DWord	 00000004 _DATA	
-playTopEdge  . . . . . . . . . .	DWord	 00000000 _DATA	
-player1X . . . . . . . . . . . .	DWord	 0000001D _DATA	
-player1Y . . . . . . . . . . . .	DWord	 00000021 _DATA	
-player2X . . . . . . . . . . . .	DWord	 00000025 _DATA	
-player2Y . . . . . . . . . . . .	DWord	 00000029 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-spacePaddle  . . . . . . . . . .	Byte	 0000001A _DATA	
-space  . . . . . . . . . . . . .	Byte	 00000018 _DATA	
+space  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
-xRun . . . . . . . . . . . . . .	DWord	 00000010 _DATA	
-yRise  . . . . . . . . . . . . .	DWord	 00000014 _DATA	
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
-	   1 Errors
+	   2 Errors

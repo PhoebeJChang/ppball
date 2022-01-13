@@ -1,11 +1,11 @@
-; (_ReadKey.asm)
+; (_ReadKeyBoard.asm)
 
 include ppball.inc
 .data
 space byte "*", 0                       ;用空白填滿
 
 .code 
-ReadKey proc,
+ReadKeyBoard proc,
      color: dword,
 	p1X: PTR dword,						; x-coord
 	p1Y: PTR dword,						; y-coord
@@ -159,6 +159,7 @@ MoveDownP2:
 
           ; moved up, create lower line.
      add [ebx], dword PTR 1                  ; change actual coordinate in main
+     mGotoxy p2X, p2Y
      mov eax, p2X
      mov dl, byte PTR [eax]                  ; x coordinate
      mov eax, p2Y
@@ -174,13 +175,11 @@ MoveDownP2:
 
 continueN:
 	popad
-	
-     mov dl, byte ptr 0h
-     mov dh, byte ptr 0h
-     call Gotoxy
+	;要把多出來的東西用黑色
+     mGotoxy 0h,0h
      ; reset color
      mov eax, 0
      call SetTextColor
 	ret
-ReadKey endp
+ReadKeyBoard endp
 end

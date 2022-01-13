@@ -2,12 +2,12 @@ include ppball.inc
 
 .code
 UpdateBall proc,
-	Ball_X: ptr dword,			;
-	Ball_Y: ptr dword,
-    color: dword,
-	xRun: ptr dword,
-	yRise: ptr dword,
-	buffer: ptr byte,
+	Ball_X: ptr dword,			;x coordinate of the ball 
+	Ball_Y: ptr dword,			;y coordinate of the ball
+    color: dword,				;BALL_COLOR : black+(yellow * 16)
+	xRun: ptr dword,			;球在跑的時候x移動 dword 2
+	yRise: ptr dword,			;球在跑的時候y移動 dword 1
+	buffer: ptr byte,			;球笑臉(不見了QAQ)
 	playTopEdgeOffset: dword,
 	boardsinBetween: dword,
     p1X: dword,
@@ -16,25 +16,25 @@ UpdateBall proc,
     p2Y: dword,
 	paddleHeight: dword
 	
-	; Ball_X - the current absolute x coordinate of the ball 
-	; Ball_Y - the current absolute y coordinate of the ball
-	; xRun - the x (horizontal) component of the ball's velocity
-	; yRise - the y (vertical) component of the ball's velocity
-		; note : a positive yRise value translates to downward motion of the ball on the consoloe and vice-versa
-	
-	; save the state of the registers from the time of the function call
+
 	pushad
 	
-	; if the ball goes outside the board, reset the ball
-	mov eax, Ball_X
-	mov ebx, p2X
-	add ebx, 20
-	cmp [eax], ebx
-	ja Reset
-	mov ebx, p1X
-	sub ebx, 5
-	cmp [eax], ebx
+	mov eax, Ball_X		;球的X座標
+
+	; 右邊範圍: 如果球跑出範圍，reset
+	mov ebx, p2X		;在player 2 的X座標就是右邊邊框範圍
+	add ebx, 5			;比邊框再出來一點點~
+	cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
+	ja Reset			;如果超過則跳去reset
+	;player1 分數此時要加一 inc p1+1!!!!!!!!!!!!!!!!!!
+
+	; 左邊範圍: 如果球跑出範圍，reset
+	mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
+	sub ebx, 5			;比邊框再進去一點點
+	cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
+
 	ja CollisionTesting
+	;player2 分數此時要加一 inc p1+1!!!!!!!!!!!!!!!!!!
 Reset:
 	mov eax, playTopEdgeOffset
 	add eax, 10

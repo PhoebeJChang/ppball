@@ -19,7 +19,7 @@ ShowFirstTwoPaddles proto,
 	paddleHeight: dword,                ;paddle 高度
     space: ptr byte
 
-ReadKey proto,
+ReadKeyBoard proto,
     color: dword,
 	p1X: PTR dword,						; 玩家一 x座標
 	p1Y: PTR dword,						; 玩家一 y座標

@@ -24,7 +24,7 @@ playLowEdge dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
 ; ball and paddle tracking
 Ball_X dword PLAY_L_EDGE_OFFSET + 30
 Ball_Y dword PLAY_T_EDGE_OFFSET + 15
-xRun dword 2
+xRun dword 2              ;
 yRise dword 1
 
 ; 填滿東東String
@@ -38,7 +38,6 @@ player2X dword (PLAY_L_EDGE_OFFSET + BOARD_R_LENGTH - 1)
 player2Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
 
 paddleHeight dword 5d       ;paddle長
-
 
 
 ; gui information 玩家計分
@@ -63,7 +62,7 @@ MainLoop:
      invoke Chill, FRAME_RATE
 
      ; check for movement and redraw paddle accordingly
-     invoke ReadKey, PADDLE_COLOR, addr player1x, addr player1Y, addr player2X, addr player2y, paddleHeight, 
+     invoke ReadKeyBoard, PADDLE_COLOR, addr player1x, addr player1Y, addr player2X, addr player2y, paddleHeight, 
                             playTopEdge, playLowEdge
 	jmp MainLoop
 	
