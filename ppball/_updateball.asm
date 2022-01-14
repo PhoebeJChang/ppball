@@ -26,15 +26,15 @@ UpdateBall proc,
 	add ebx, 5			;比邊框再出來一點點~
 	cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
 	ja Reset			;如果超過則跳去reset
-	;player1 分數此時要加一 inc p1+1!!!!!!!!!!!!!!!!!!
+	;player1 分數此時要加一 inc p1+1!!!
 
 	; 左邊範圍
 	mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
 	sub ebx, 5			;比邊框再進去一點點
 	cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
 
-	ja CollisionTesting
-	;player2 分數此時要加一 inc p2+1!!!!!!!!!!!!!!!!!!
+	ja BangTest
+	;player2 分數此時要加一 inc p2+1!!!
 
 Reset:
 	;球起始點設定
@@ -45,7 +45,7 @@ Reset:
 	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise
 	jmp ContinueN
 	
-CollisionTesting:
+BangTest:
     ; if the ball is beyond the paddles, let it go checking that here
 
     mov eax, Ball_X
