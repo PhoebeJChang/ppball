@@ -20,6 +20,22 @@ FRAME_RATE equ 100d                          ;速度
 ;ppballHeight2 dword 2
 ;Menu Page
 MenuTitle byte "PPball !!",0
+MenuClass byte "- 資工二甲 -" ,0
+MenuOurName1 byte "張甄庭 409261287",0
+MenuOurName2 byte "鍾馥羽 409261328",0
+MenuIntroTitle byte "************** -  遊戲介紹  - ***************",0
+MenuPlayerOne1 byte "玩家一需要使用W、S鍵",0
+MenuPlayerOne2 byte "來控制左邊的",0
+MenuPlayerOne3 byte "藍色PADDLE",0
+MenuPlayerOne4 byte "上下移動",0
+
+MenuPlayerTwo1 byte "玩家二需要使用上、下鍵",0
+MenuPlayerTwo2 byte "來控制右邊的",0
+MenuPlayerTwo3 byte "紅色PADDLE",0
+MenuPlayerTwo4 byte "上下移動",0
+
+MenuStartGame1 byte "---------- 請按任意鍵 ----------",0
+MenuStartGame2 byte "開始遊戲",0
 
 
 ; for passing into prototypes
@@ -55,6 +71,7 @@ paddleHeight dword 5d       ;paddle長
 .code
 main proc
     call clrscr
+
 Menu:
     ;macros
     mGotoxy 55,4
@@ -235,8 +252,67 @@ Menu:
     mGotoxy 86,6
     mWriteString OFFSET space2
 
+    ;WE ARE?
+    mov eax, white + (gray*16)
+    call SetTextColor
+    mGotoxy 53,10
+    mWriteString OFFSET MenuClass
+
+    mov eax, white + (black*16)
+    call SetTextColor
+    mGotoxy 51,13
+    mWriteString OFFSET MenuOurName1
+    mGotoxy 51,15
+    mWriteString OFFSET MenuOurName2
+
+    ;遊戲介紹 
+    mov eax, white + (gray*16)
+    call SetTextColor
+    mGotoxy 37,18
+    mWriteString OFFSET MenuIntroTitle      ;遊戲介紹
+
+    mov eax, white + (black*16)
+    call SetTextColor
+    mGotoxy 50, 20
+    mWriteString OFFSET MenuPlayerOne1
+    mGotoxy 45,22
+    mWriteString OFFSET MenuPlayerOne2
+    mov eax, white + (lightBlue*16)
+    call SetTextColor
+    mWriteString OFFSET MenuPlayerOne3
+    mov eax, white + (black*16)
+    call SetTextColor
+    mWriteString OFFSET MenuPlayerOne4
+
+    mGotoxy 50, 25
+    mWriteString OFFSET MenuPlayerTwo1
+    mGotoxy 45,27
+    mWriteString OFFSET MenuPlayerTwo2
+    mov eax, white + (lightRed*16)
+    call SetTextColor
+    mWriteString OFFSET MenuPlayerTwo3
+    mov eax, white + (black*16)
+    call SetTextColor
+    mWriteString OFFSET MenuPlayerTwo4
+
+    mGotoxy 44, 30
+    mWriteString OFFSET MenuStartGame1
+    mov eax, white + (lightMagenta*16)
+    call SetTextColor
+    mGotoxy 56, 32
+    mWriteString OFFSET MenuStartGame2
+    mov eax, white + (black*16)
+    call SetTextColor
+    mWriteString OFFSET space
+
+
+
+    
+
 stop:
     call ReadChar
+    mGotoxy 0,0
+    mWriteString OFFSET space
     
 
 NextState:
@@ -249,7 +325,8 @@ NextState:
      call SetTextColor
 
 ppballMain:
-     
+     mov eax, white+(black*16)
+     call SetTextColor
      invoke DrawFrame, GUI_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
      invoke ShowFirstTwoPaddles, PADDLE_COLOR, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr spacePaddle
 	 invoke UpdateBall, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
