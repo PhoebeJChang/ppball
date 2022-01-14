@@ -47,6 +47,7 @@ Reset:
 	
 CollisionTesting:
     ; if the ball is beyond the paddles, let it go checking that here
+
     mov eax, Ball_X
 	mov ebx, p2X
 	cmp [eax], ebx
@@ -67,13 +68,13 @@ CollisionTesting:
 	neg dword ptr [eax]
 	
 NotTouchingBottom:
-	; top frame
+	;top border
     mov eax, [Ball_Y]
 	mov ebx, playTopEdgeOffset
 	inc ebx						;ebx+1
 	cmp [eax], ebx
 	ja NotTouchingTop
-	mov eax, [yRise]
+	mov eax, [yRise]			;©¹¤W­¸
 	neg dword ptr [eax]
 	
 NotTouchingTop:

@@ -1,8 +1,7 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 19:56:28
-_drawframe.asm						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 20:00:57
+_updateball.asm						     Page 1 - 1
 
 
-				; (_drawframe.asm)
 				include ppball.inc
 			      C include Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -102,95 +101,230 @@ _drawframe.asm						     Page 1 - 1
 			      C Chill proto,
 			      C      timedu: dword
 			      C 
- 00000000			.data
- 00000000 50 50 42 41 4C		ppballTitle byte "PPBALL !!",0
-	   4C 20 21 21 00
+
  00000000			.code
- 00000000			DrawFrame proc,
-				    color: dword,
+ 00000000			UpdateBall proc,
+					Ball_X: ptr dword,			;x coordinate of the ball 
+					Ball_Y: ptr dword,			;y coordinate of the ball
+				    color: dword,				;BALL_COLOR : black+(yellow * 16)
+					xRun: ptr dword,			;球在跑的時候x移動 dword 2
+					yRise: ptr dword,			;球在跑的時候y移動 dword 1
+					buffer: ptr byte,			;球笑臉(不見了QAQ)
 					playTopEdgeOffset: dword,
-					playLeftEdgeOffset: dword,
-				    boardRowLength: dword,
 					boardsinBetween: dword,
-					boardColumnLength: dword,
-					space: ptr byte
+				    p1X: dword,
+				    p1Y: dword,
+				    p2X: dword,
+				    p2Y: dword,
+					paddleHeight: dword
 					
-					; playTopEdgeOffset - distance from the top edge of the console to the top edge of the game board
-				     ; playLeftEdgeOffset - distance from the left edge of the console to the left edge of the game board
-					; boardRowLength - width of the board
-					; boardsinBetween - the height of the board
-					; boardColumnLength - the width of the boarder lines
-					; space - the offset of a fill character
 
  00000003  60				pushad
-					     
-					; first, the top border
-				    ; set the the background color
-
-					mGotoxy 55,4
- 00000004  52		     1		push edx
- 00000005  B6 04	     1		mov  dh,4
- 00000007  B2 37	     1		mov  dl,55
- 00000009  E8 00000000 E     1		call Gotoxy
- 0000000E  5A		     1		pop  edx
- 0000000F  B8 00000004			mov eax, red+(black*16)
- 00000014  E8 00000000 E		call SetTextColor
-					mWriteString OFFSET ppballTitle
- 00000019  52		     1		push edx
- 0000001A  BA 00000000 R     1		mov  edx,OFFSET OFFSET ppballTitle
- 0000001F  E8 00000000 E     1		call WriteString
- 00000024  5A		     1		pop  edx
-
- 00000025  8B 45 08			mov eax, color
- 00000028  E8 00000000 E		call SetTextColor
-					; place the cursor at the top left edge of the board
- 0000002D  8B 45 0C		    mov eax, playTopEdgeOffset
- 00000030  8B 5D 10		    mov ebx, playLeftEdgeOffset
- 00000033  8A F0			mov dh, al
- 00000035  8A D3			mov dl, bl
- 00000037  E8 00000000 E		call Gotoxy
-					; load edx with the fill character
- 0000003C  8B 55 20			mov edx, space
-					; print the borders
- 0000003F  B9 00000002			mov ecx, 2
- 00000044  51			L0: push ecx
- 00000045  8B 4D 1C			mov ecx, boardColumnLength
- 00000048  51			L1: push ecx
- 00000049  8B 4D 14			mov ecx, boardRowLength
- 0000004C  E8 00000000 E	L2: call WriteString	
- 00000051  E2 F9			loop L2
- 00000053  59				pop ecx
- 00000054  E2 F2			loop L1
- 00000056  59				pop ecx
-				    ; place the cursor at the start of the bottom border
- 00000057  50			    push eax
- 00000058  52			    push edx
- 00000059  03 45 18		    add eax, boardsinBetween			; 
- 0000005C  8A F0		    mov dh, al
- 0000005E  8A D3			mov dl, bl
- 00000060  E8 00000000 E		call Gotoxy
- 00000065  5A			    pop edx
- 00000066  58			    pop eax
-				    ; now repeat to draw the bottom border
- 00000067  E2 DB			loop L0
-
 					
-					; set the text and background colors back to the defaults like a friend
- 00000069  B8 00000000			mov eax, 0
- 0000006E  E8 00000000 E		call SetTextColor
-				    ; move the cursor back to the top left corner of the console
- 00000073  BA 00000000		    mov edx, 0
- 00000078  E8 00000000 E	    call Gotoxy
+ 00000004  8B 45 08			mov eax, Ball_X		;球的X座標
+
+					; 右邊範圍: 如果球跑出範圍，reset
+ 00000007  8B 5D 30			mov ebx, p2X		;在player 2 的X座標就是右邊邊框範圍
+ 0000000A  83 C3 05			add ebx, 5			;比邊框再出來一點點~
+ 0000000D  39 18			cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
+ 0000000F  77 0A			ja Reset			;如果超過則跳去reset
+					;player1 分數此時要加一 inc p1+1!!!!!!!!!!!!!!!!!!
+
+					; 左邊範圍
+ 00000011  8B 5D 28			mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
+ 00000014  83 EB 05			sub ebx, 5			;比邊框再進去一點點
+ 00000017  39 18			cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
+
+ 00000019  77 24			ja CollisionTesting
+					;player2 分數此時要加一 inc p2+1!!!!!!!!!!!!!!!!!!
+
+ 0000001B			Reset:
+					;球起始點設定
+ 0000001B  8B 45 20			mov eax, playTopEdgeOffset
+ 0000001E  83 C0 0A			add eax, 10
+ 00000021  8B 5D 28			mov ebx, p1X
+ 00000024  83 C3 28			add ebx, 40
+					invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise
+ 0000003A  E9 00000136			jmp ContinueN
 					
-					; and done
- 0000007D  61				popad
+ 0000003F			CollisionTesting:
+				    ; if the ball is beyond the paddles, let it go checking that here
+ 0000003F  B8 0000000F			mov eax, white+(black*16)
+ 00000044  E8 00000000 E		call SetTextColor
+ 00000049  8B 45 08		    mov eax, Ball_X
+ 0000004C  8B 5D 30			mov ebx, p2X
+ 0000004F  39 18			cmp [eax], ebx
+ 00000051  0F 87 00000086		ja UpdateCoords
+ 00000057  8B 5D 28			mov ebx, p1X
+ 0000005A  39 18			cmp [eax], ebx
+ 0000005C  72 7F			jb UpdateCoords
+
+				    ; check whether the ball is touching either frame
+				    ; bottom frame
+ 0000005E  8B 45 0C			mov eax, [Ball_Y]
+ 00000061  8B 5D 20			mov ebx, playTopEdgeOffset
+ 00000064  03 5D 24			add ebx, boardsinBetween
+ 00000067  4B			    dec ebx
+ 00000068  39 18			cmp [eax], ebx
+ 0000006A  72 05			jb NotTouchingBottom
+ 0000006C  8B 45 18			mov eax, [yRise]
+ 0000006F  F7 18			neg dword ptr [eax]
+					
+ 00000071			NotTouchingBottom:
+					; top frame
+ 00000071  8B 45 0C		    mov eax, [Ball_Y]
+ 00000074  8B 5D 20			mov ebx, playTopEdgeOffset
+ 00000077  43				inc ebx						;ebx+1
+ 00000078  39 18			cmp [eax], ebx
+ 0000007A  77 05			ja NotTouchingTop
+ 0000007C  8B 45 18			mov eax, [yRise]
+ 0000007F  F7 18			neg dword ptr [eax]
+					
+ 00000081			NotTouchingTop:
+					; check whether the ball is touching either paddle
+					; right paddle
+					; first decide whether the ball's x-value is equal to the right paddle's x-value
+ 00000081  8B 45 30			mov eax, p2X
+ 00000084  8B D8			mov ebx, eax
+ 00000086  4B				dec ebx
+ 00000087  8B 45 08			mov eax, [Ball_X]
+ 0000008A  39 18			cmp [eax], ebx
+ 0000008C  72 20			jb NotTouchingRightPaddle
+					; ball is potentially touching the right paddle - now check whether the ball's y-value is within the paddle's y-range
+					; ball is not touching if it is below the paddle - checking that here
+ 0000008E  8B 45 34			mov eax, p2Y
+ 00000091  8B D8			mov ebx, eax
+ 00000093  8B 45 0C			mov eax, [Ball_Y]
+ 00000096  39 18			cmp [eax], ebx
+ 00000098  77 14			ja NotTouchingRightPaddle
+					; ball is not touching if it is above the paddle - checking that here
+ 0000009A  8B 45 34			mov eax, p2Y
+ 0000009D  8B D8			mov ebx, eax
+ 0000009F  2B 5D 38			sub ebx, paddleHeight
+ 000000A2  8B 45 0C			mov eax, [Ball_Y]
+ 000000A5  39 18			cmp [eax], ebx
+ 000000A7  72 05			jb NotTouchingRightPaddle
+ 000000A9  8B 45 14			mov eax, [xRun]
+ 000000AC  F7 18			neg dword ptr [eax]
+					
+ 000000AE			NotTouchingRightPaddle:
+					; now check the left paddle
+					; first decide whether the ball's x-value is equal to the left paddle's x-value
+ 000000AE  8B 45 28			mov eax, p1X
+ 000000B1  8B D8			mov ebx, eax
+ 000000B3  83 C3 02		    add ebx, 2
+ 000000B6  8B 45 08			mov eax, [Ball_X]
+ 000000B9  39 18			cmp [eax], ebx
+ 000000BB  77 20			ja NotTouchingLeftPaddle
+					; ball is potentially touching the left paddle - now check whether the ball's y-value is within the paddle's y-range
+					; ball is not touching if it is below the paddle - checking that here
+ 000000BD  8B 45 2C			mov eax, p1Y
+ 000000C0  8B D8			mov ebx, eax
+ 000000C2  8B 45 0C			mov eax, [Ball_Y]
+ 000000C5  39 18			cmp [eax], ebx
+ 000000C7  77 14			ja NotTouchingLeftPaddle
+					; ball is not touching if it is above the paddle - checking that here
+ 000000C9  8B 45 2C			mov eax, p1Y
+ 000000CC  8B D8			mov ebx, eax
+ 000000CE  2B 5D 38			sub ebx, paddleHeight
+ 000000D1  8B 45 0C			mov eax, [Ball_Y]
+ 000000D4  39 18			cmp [eax], ebx
+ 000000D6  72 05			jb NotTouchingLeftPaddle
+ 000000D8  8B 45 14			mov eax, [xRun]
+ 000000DB  F7 18			neg dword ptr [eax]
+					
+ 000000DD			NotTouchingLeftPaddle:
+ 000000DD			UpdateCoords:
+					; update the x- and y-coordinates of the ball
+					; x
+ 000000DD  8B 45 14			mov eax, [xRun]
+ 000000E0  8B 18		    mov ebx, [eax]
+ 000000E2  8B 45 08		    mov eax, [Ball_X]
+ 000000E5  03 18		    add ebx, [eax]
+ 000000E7  89 18			mov [eax], ebx
+					; y
+ 000000E9  8B 45 18			mov eax, [yRise]
+ 000000EC  8B 18			mov ebx, [eax]
+ 000000EE  8B 45 0C			mov eax, [Ball_Y]
+ 000000F1  03 18			add ebx, [eax]
+ 000000F3  89 18			mov [eax], ebx
+					
+					; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
+ 000000F5  8B 5D 08			mov ebx, [Ball_X]
+ 000000F8  8A 13			mov dl, byte ptr [ebx]
+ 000000FA  8B 5D 0C			mov ebx, [Ball_Y]
+ 000000FD  8A 33			mov dh, byte ptr [ebx]
+ 000000FF  E8 00000000 E		call Gotoxy
+					
+					; change the fill color to white to represent the ball with a white-filled space
+ 00000104  8B 45 10			mov eax, color
+ 00000107  E8 00000000 E		call SetTextColor
+					
+					; print a space character to print the ball as a white space
+ 0000010C  8B 55 1C			mov edx, buffer
+ 0000010F  E8 00000000 E		call WriteString
+					
+					; now set the text background color back to black like a friEndit
+ 00000114  B8 00000000			mov eax, black * 16
+ 00000119  E8 00000000 E		call SetTextColor
+
+				    ; now erase the ball's shadow from its previous location
+				    ; go to the ball's previous position
+					; set x-coordinate back to its original value
+ 0000011E  8B 45 08		    mov eax, [Ball_X]
+ 00000121  8B 18		    mov ebx, [eax]
+ 00000123  8B 45 14		    mov eax, [xRun]
+ 00000126  2B 18			sub ebx, [eax]
+				    ; now store the (original) x-coordinate value in Ball_X
+ 00000128  8B 45 08		    mov eax, [Ball_X]
+ 0000012B  89 18		    mov [eax], ebx
+
+					; set y-coordinate back to its original value
+ 0000012D  8B 45 0C		    mov eax, [Ball_Y]
+ 00000130  8B 18			mov ebx, [eax]
+ 00000132  8B 45 18			mov eax, [yRise]
+ 00000135  2B 18			sub ebx, [eax]
+ 00000137  8B 45 0C			mov eax, [Ball_Y]
+ 0000013A  89 18		    mov [eax], ebx
+
+				    ; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
+ 0000013C  8B 5D 08		    mov ebx, [Ball_X]
+ 0000013F  8A 13			mov dl, [ebx]
+ 00000141  8B 5D 0C			mov ebx, [Ball_Y]
+ 00000144  8A 33			mov dh, [ebx]
+ 00000146  E8 00000000 E		call Gotoxy
+					
+					; now print a space with a black background to remove the ball's shadow
+ 0000014B  8B 55 1C			mov edx, buffer
+ 0000014E  E8 00000000 E		call WriteString
+					
+					; now re-update Ball_X and Ball_Y with their new values
+					; x
+ 00000153  8B 45 14			mov eax, [xRun]
+ 00000156  8B 18		    mov ebx, [eax]
+ 00000158  8B 45 08		    mov eax, [Ball_X]
+ 0000015B  03 18		    add ebx, [eax]
+ 0000015D  89 18			mov [eax], ebx
+					; y
+ 0000015F  8B 45 18			mov eax, [yRise]
+ 00000162  8B 18			mov ebx, [eax]
+ 00000164  8B 45 0C			mov eax, [Ball_Y]
+ 00000167  03 18			add ebx, [eax]
+ 00000169  89 18			mov [eax], ebx
+					
+				    ; move the cursor back to 0 to get it out of the gamespace
+ 0000016B  BA 00000000		    mov edx, 0
+ 00000170  E8 00000000 E	    call Gotoxy
+ 00000175			ContinueN:
+ 00000175  61				popad
 					ret
- 00000082			DrawFrame endp
+
+ 0000017A			UpdateBall endp
 				end
 					
 	
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 19:56:28
-_drawframe.asm						     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 20:00:57
+_updateball.asm						     Symbols 2 - 1
 
 
 
@@ -301,8 +435,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000000A Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000082 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000017A Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -318,17 +452,7 @@ CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawBall . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawFrame  . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000082 Public STDCALL
-  color  . . . . . . . . . . . .	DWord	 bp + 00000008
-  playTopEdgeOffset  . . . . . .	DWord	 bp + 0000000C
-  playLeftEdgeOffset . . . . . .	DWord	 bp + 00000010
-  boardRowLength . . . . . . . .	DWord	 bp + 00000014
-  boardsinBetween  . . . . . . .	DWord	 bp + 00000018
-  boardColumnLength  . . . . . .	DWord	 bp + 0000001C
-  space  . . . . . . . . . . . .	DWord	 bp + 00000020
-  L0 . . . . . . . . . . . . . .	L Near	 00000044 _TEXT	
-  L1 . . . . . . . . . . . . . .	L Near	 00000048 _TEXT	
-  L2 . . . . . . . . . . . . . .	L Near	 0000004C _TEXT	
+DrawFrame  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawScore  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -408,7 +532,28 @@ Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-UpdateBall . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+UpdateBall . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000017A Public STDCALL
+  Ball_X . . . . . . . . . . . .	DWord	 bp + 00000008
+  Ball_Y . . . . . . . . . . . .	DWord	 bp + 0000000C
+  color  . . . . . . . . . . . .	DWord	 bp + 00000010
+  xRun . . . . . . . . . . . . .	DWord	 bp + 00000014
+  yRise  . . . . . . . . . . . .	DWord	 bp + 00000018
+  buffer . . . . . . . . . . . .	DWord	 bp + 0000001C
+  playTopEdgeOffset  . . . . . .	DWord	 bp + 00000020
+  boardsinBetween  . . . . . . .	DWord	 bp + 00000024
+  p1X  . . . . . . . . . . . . .	DWord	 bp + 00000028
+  p1Y  . . . . . . . . . . . . .	DWord	 bp + 0000002C
+  p2X  . . . . . . . . . . . . .	DWord	 bp + 00000030
+  p2Y  . . . . . . . . . . . . .	DWord	 bp + 00000034
+  paddleHeight . . . . . . . . .	DWord	 bp + 00000038
+  Reset  . . . . . . . . . . . .	L Near	 0000001B _TEXT	
+  CollisionTesting . . . . . . .	L Near	 0000003F _TEXT	
+  NotTouchingBottom  . . . . . .	L Near	 00000071 _TEXT	
+  NotTouchingTop . . . . . . . .	L Near	 00000081 _TEXT	
+  NotTouchingRightPaddle . . . .	L Near	 000000AE _TEXT	
+  NotTouchingLeftPaddle  . . . .	L Near	 000000DD _TEXT	
+  UpdateCoords . . . . . . . . .	L Near	 000000DD _TEXT	
+  ContinueN  . . . . . . . . . .	L Near	 00000175 _TEXT	
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -659,7 +804,6 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-ppballTitle  . . . . . . . . . .	Byte	 00000000 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
