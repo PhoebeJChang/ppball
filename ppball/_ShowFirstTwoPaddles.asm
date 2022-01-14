@@ -1,5 +1,4 @@
-; (_ShowFirstTwoPaddles.asm)
-
+;ShowFirst2Paddles
 include ppball.inc
 
 .code 

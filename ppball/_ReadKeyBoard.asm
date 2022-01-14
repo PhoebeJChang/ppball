@@ -1,5 +1,3 @@
-; (_ReadKeyBoard.asm)
-
 include ppball.inc
 .data
 space byte "*", 0                       ;¥Î*¶ñº¡

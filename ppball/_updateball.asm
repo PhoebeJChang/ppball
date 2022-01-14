@@ -46,7 +46,6 @@ Reset:
 	jmp ContinueN
 	
 BangTest:
-    ; if the ball is beyond the paddles, let it go checking that here
 
     mov eax, Ball_X
 	mov ebx, p2X
@@ -56,8 +55,6 @@ BangTest:
 	cmp [eax], ebx
 	jb UpdateCoords
 
-    ; check whether the ball is touching either frame
-    ; bottom frame
 	mov eax, [Ball_Y]
 	mov ebx, playTopEdgeOffset
 	add ebx, boardsinBetween
@@ -68,7 +65,7 @@ BangTest:
 	neg dword ptr [eax]
 	
 NotTouchingBottom:
-	;top border
+
     mov eax, [Ball_Y]
 	mov ebx, playTopEdgeOffset
 	inc ebx						;ebx+1
@@ -78,23 +75,19 @@ NotTouchingBottom:
 	neg dword ptr [eax]
 	
 NotTouchingTop:
-	; check whether the ball is touching either paddle
-	; right paddle
-	; first decide whether the ball's x-value is equal to the right paddle's x-value
 	mov eax, p2X
 	mov ebx, eax
 	dec ebx
 	mov eax, [Ball_X]
 	cmp [eax], ebx
 	jb NotTouchingRightPaddle
-	; ball is potentially touching the right paddle - now check whether the ball's y-value is within the paddle's y-range
-	; ball is not touching if it is below the paddle - checking that here
+
 	mov eax, p2Y
 	mov ebx, eax
 	mov eax, [Ball_Y]
 	cmp [eax], ebx
 	ja NotTouchingRightPaddle
-	; ball is not touching if it is above the paddle - checking that here
+
 	mov eax, p2Y
 	mov ebx, eax
 	sub ebx, paddleHeight
@@ -105,16 +98,14 @@ NotTouchingTop:
 	neg dword ptr [eax]
 	
 NotTouchingRightPaddle:
-	; now check the left paddle
-	; first decide whether the ball's x-value is equal to the left paddle's x-value
+
 	mov eax, p1X
 	mov ebx, eax
     add ebx, 2
 	mov eax, [Ball_X]
 	cmp [eax], ebx
 	ja NotTouchingLeftPaddle
-	; ball is potentially touching the left paddle - now check whether the ball's y-value is within the paddle's y-range
-	; ball is not touching if it is below the paddle - checking that here
+
 	mov eax, p1Y
 	mov ebx, eax
 	mov eax, [Ball_Y]
