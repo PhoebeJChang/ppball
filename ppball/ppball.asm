@@ -306,27 +306,12 @@ Menu:
     mWriteString OFFSET space
 
 
-
-    
-
 stop:
     call ReadChar
-    mGotoxy 0,0
-    mWriteString OFFSET space
-    
-
-NextState:
-    ;先設定背景色 黑色~
     call clrscr
-    pushad
-
-    XOR eax,eax
-     mov eax, white+(black*16)
-     call SetTextColor
 
 ppballMain:
-     mov eax, white+(black*16)
-     call SetTextColor
+     
      invoke DrawFrame, GUI_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
      invoke ShowFirstTwoPaddles, PADDLE_COLOR, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr spacePaddle
 	 invoke UpdateBall, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 

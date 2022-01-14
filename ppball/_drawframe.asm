@@ -1,6 +1,7 @@
 ; (_drawframe.asm)
 include ppball.inc
-
+.data
+	ppballTitle byte "PPBALL !!",0
 .code
 DrawFrame proc,
     color: dword,
@@ -22,6 +23,12 @@ DrawFrame proc,
 	     
 	; first, the top border
     ; set the the background color
+
+	mGotoxy 55,4
+	mov eax, red+(black*16)
+	call SetTextColor
+	mWriteString OFFSET ppballTitle
+
 	mov eax, color
 	call SetTextColor
 	; place the cursor at the top left edge of the board

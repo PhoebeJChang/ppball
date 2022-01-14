@@ -1,7 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 19:41:59
-ppball.asm						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 19:56:28
+_drawframe.asm						     Page 1 - 1
 
 
+				; (_drawframe.asm)
 				include ppball.inc
 			      C include Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -101,1163 +102,95 @@ ppball.asm						     Page 1 - 1
 			      C Chill proto,
 			      C      timedu: dword
 			      C 
-
-				; 框架大小和顏色宣告
- = 00000005			PLAY_T_EDGE_OFFSET equ 5d
- = 00000014			PLAY_L_EDGE_OFFSET equ 20d
- = 00000050			BOARD_R_LENGTH equ 80d                      ;長row
- = 00000001			BOARD_C_LENGTH equ 1d                       ;寬cloumn
- = 00000019			BOARD_BETWEEN equ 25d                       ;板子間距離
-
- = 0000000F			GUI_TEXT_COLOR equ (white)
- = 0000007D			GUI_COLOR equ lightMagenta+(lightGray * 16)      ;上下板子顏色
- = 000000B1			PADDLE_COLOR equ blue+(lightCyan * 16)           ;左右paddle color
- = 000000E0			BALL_COLOR equ black+(yellow * 16)
-
- = 00000064			FRAME_RATE equ 100d                          ;速度
-
-
  00000000			.data
-				;ppballHeight1 dword 6
-				;ppballHeight2 dword 2
-				;Menu Page
- 00000000 50 50 62 61 6C	MenuTitle byte "PPball !!",0
-	   6C 20 21 21 00
- 0000000A 2D 20 B8 EA A4	MenuClass byte "- 資工二甲 -" ,0
-	   75 A4 47 A5 D2
-	   20 2D 00
- 00000017 B1 69 BA C2 AE	MenuOurName1 byte "張甄庭 409261287",0
-	   78 20 34 30 39
-	   32 36 31 32 38
-	   37 00
- 00000028 C1 E9 C3 4C A6	MenuOurName2 byte "鍾馥羽 409261328",0
-	   D0 20 34 30 39
-	   32 36 31 33 32
-	   38 00
- 00000039 2A 2A 2A 2A 2A	MenuIntroTitle byte "************** -  遊戲介紹  - ***************",0
-	   2A 2A 2A 2A 2A
-	   2A 2A 2A 2A 20
-	   2D 20 20 B9 43
-	   C0 B8 A4 B6 B2
-	   D0 20 20 2D 20
-	   2A 2A 2A 2A 2A
-	   2A 2A 2A 2A 2A
-	   2A 2A 2A 2A 2A
-	   00
- 00000067 AA B1 AE 61 A4	MenuPlayerOne1 byte "玩家一需要使用W、S鍵",0
-	   40 BB DD AD 6E
-	   A8 CF A5 CE 57
-	   A1 42 53 C1 E4
-	   00
- 0000007C A8 D3 B1 B1 A8	MenuPlayerOne2 byte "來控制左邊的",0
-	   EE A5 AA C3 E4
-	   AA BA 00
- 00000089 C2 C5 A6 E2 50	MenuPlayerOne3 byte "藍色PADDLE",0
-	   41 44 44 4C 45
-	   00
- 00000094 A4 57 A4 55 B2	MenuPlayerOne4 byte "上下移動",0
-	   BE B0 CA 00
-
- 0000009D AA B1 AE 61 A4	MenuPlayerTwo1 byte "玩家二需要使用上、下鍵",0
-	   47 BB DD AD 6E
-	   A8 CF A5 CE A4
-	   57 A1 42 A4 55
-	   C1 E4 00
- 000000B4 A8 D3 B1 B1 A8	MenuPlayerTwo2 byte "來控制右邊的",0
-	   EE A5 6B C3 E4
-	   AA BA 00
- 000000C1 AC F5 A6 E2 50	MenuPlayerTwo3 byte "紅色PADDLE",0
-	   41 44 44 4C 45
-	   00
- 000000CC A4 57 A4 55 B2	MenuPlayerTwo4 byte "上下移動",0
-	   BE B0 CA 00
-
- 000000D5 2D 2D 2D 2D 2D	MenuStartGame1 byte "---------- 請按任意鍵 ----------",0
-	   2D 2D 2D 2D 2D
-	   20 BD D0 AB F6
-	   A5 F4 B7 4E C1
-	   E4 20 2D 2D 2D
-	   2D 2D 2D 2D 2D
-	   2D 2D 00
- 000000F6 B6 7D A9 6C B9	MenuStartGame2 byte "開始遊戲",0
-	   43 C0 B8 00
-
-
-				; for passing into prototypes
- 000000FF 00000005		playTopEdge dword (PLAY_T_EDGE_OFFSET)
- 00000103 0000001E		playLowEdge dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
-
-				; ball and paddle tracking
- 00000107 00000032		Ball_X dword PLAY_L_EDGE_OFFSET + 30
- 0000010B 00000014		Ball_Y dword PLAY_T_EDGE_OFFSET + 15
- 0000010F 00000002		xRun dword 2              ;
- 00000113 00000001		yRise dword 1
-
-				; 填滿東東String
- 00000117 20 00			space byte " ", 0
- 00000119 20 20 00		space2 byte "  ",0
- 0000011C 2A 00			spacePaddle byte "*",0
- 0000011E 02			buffer byte 2h            ;球球實心笑臉
-
- 0000011F 00000014		player1X dword (PLAY_L_EDGE_OFFSET)                 ;設定p1 paddle 位置在左側邊邊
- 00000123 00000013		player1Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
- 00000127 00000063		player2X dword (PLAY_L_EDGE_OFFSET + BOARD_R_LENGTH - 1)
- 0000012B 00000013		player2Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
-
- 0000012F 00000005		paddleHeight dword 5d       ;paddle長
-
-
-				; gui information 玩家計分
-				;p1scoreString byte "Player 1 score:", 0
-				;p2scoreString byte "Player 2 score:", 0
-				;p1score dword 0
-				;p2score dword 0
-
+ 00000000 50 50 42 41 4C		ppballTitle byte "PPBALL !!",0
+	   4C 20 21 21 00
  00000000			.code
- 00000000			main proc
- 00000000  E8 00000000 E	    call clrscr
+ 00000000			DrawFrame proc,
+				    color: dword,
+					playTopEdgeOffset: dword,
+					playLeftEdgeOffset: dword,
+				    boardRowLength: dword,
+					boardsinBetween: dword,
+					boardColumnLength: dword,
+					space: ptr byte
+					
+					; playTopEdgeOffset - distance from the top edge of the console to the top edge of the game board
+				     ; playLeftEdgeOffset - distance from the left edge of the console to the left edge of the game board
+					; boardRowLength - width of the board
+					; boardsinBetween - the height of the board
+					; boardColumnLength - the width of the boarder lines
+					; space - the offset of a fill character
 
- 00000005			Menu:
-				    ;macros
-				    mGotoxy 55,4
- 00000005  52		     1		push edx
- 00000006  B6 04	     1		mov  dh,4
- 00000008  B2 37	     1		mov  dl,55
- 0000000A  E8 00000000 E     1		call Gotoxy
- 0000000F  5A		     1		pop  edx
- 00000010  B8 0000003E		    mov eax, yellow(cyan*16)
- 00000015  E8 00000000 E	    call SetTextColor
-				    
-				    ;mWriteString OFFSET MenuTitle
-				    
-				    ;P
-				    mGotoxy 30,1
- 0000001A  52		     1		push edx
- 0000001B  B6 01	     1		mov  dh,1
- 0000001D  B2 1E	     1		mov  dl,30
- 0000001F  E8 00000000 E     1		call Gotoxy
+ 00000003  60				pushad
+					     
+					; first, the top border
+				    ; set the the background color
+
+					mGotoxy 55,4
+ 00000004  52		     1		push edx
+ 00000005  B6 04	     1		mov  dh,4
+ 00000007  B2 37	     1		mov  dl,55
+ 00000009  E8 00000000 E     1		call Gotoxy
+ 0000000E  5A		     1		pop  edx
+ 0000000F  B8 00000004			mov eax, red+(black*16)
+ 00000014  E8 00000000 E		call SetTextColor
+					mWriteString OFFSET ppballTitle
+ 00000019  52		     1		push edx
+ 0000001A  BA 00000000 R     1		mov  edx,OFFSET OFFSET ppballTitle
+ 0000001F  E8 00000000 E     1		call WriteString
  00000024  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000025  52		     1		push edx
- 00000026  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000002B  E8 00000000 E     1		call WriteString
- 00000030  5A		     1		pop  edx
-				    mGotoxy 30,2
- 00000031  52		     1		push edx
- 00000032  B6 02	     1		mov  dh,2
- 00000034  B2 1E	     1		mov  dl,30
- 00000036  E8 00000000 E     1		call Gotoxy
- 0000003B  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000003C  52		     1		push edx
- 0000003D  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000042  E8 00000000 E     1		call WriteString
- 00000047  5A		     1		pop  edx
-				    mGotoxy 30,3
- 00000048  52		     1		push edx
- 00000049  B6 03	     1		mov  dh,3
- 0000004B  B2 1E	     1		mov  dl,30
- 0000004D  E8 00000000 E     1		call Gotoxy
- 00000052  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000053  52		     1		push edx
- 00000054  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000059  E8 00000000 E     1		call WriteString
- 0000005E  5A		     1		pop  edx
-				    mGotoxy 30,4
- 0000005F  52		     1		push edx
- 00000060  B6 04	     1		mov  dh,4
- 00000062  B2 1E	     1		mov  dl,30
- 00000064  E8 00000000 E     1		call Gotoxy
- 00000069  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000006A  52		     1		push edx
- 0000006B  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000070  E8 00000000 E     1		call WriteString
- 00000075  5A		     1		pop  edx
-				    mGotoxy 30,5
- 00000076  52		     1		push edx
- 00000077  B6 05	     1		mov  dh,5
- 00000079  B2 1E	     1		mov  dl,30
- 0000007B  E8 00000000 E     1		call Gotoxy
- 00000080  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000081  52		     1		push edx
- 00000082  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000087  E8 00000000 E     1		call WriteString
- 0000008C  5A		     1		pop  edx
-				    mGotoxy 30,6
- 0000008D  52		     1		push edx
- 0000008E  B6 06	     1		mov  dh,6
- 00000090  B2 1E	     1		mov  dl,30
- 00000092  E8 00000000 E     1		call Gotoxy
- 00000097  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000098  52		     1		push edx
- 00000099  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000009E  E8 00000000 E     1		call WriteString
- 000000A3  5A		     1		pop  edx
 
-				    mGotoxy 32,1
- 000000A4  52		     1		push edx
- 000000A5  B6 01	     1		mov  dh,1
- 000000A7  B2 20	     1		mov  dl,32
- 000000A9  E8 00000000 E     1		call Gotoxy
- 000000AE  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000000AF  52		     1		push edx
- 000000B0  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000000B5  E8 00000000 E     1		call WriteString
- 000000BA  5A		     1		pop  edx
-				    mGotoxy 34,1
- 000000BB  52		     1		push edx
- 000000BC  B6 01	     1		mov  dh,1
- 000000BE  B2 22	     1		mov  dl,34
- 000000C0  E8 00000000 E     1		call Gotoxy
- 000000C5  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000000C6  52		     1		push edx
- 000000C7  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000000CC  E8 00000000 E     1		call WriteString
- 000000D1  5A		     1		pop  edx
+ 00000025  8B 45 08			mov eax, color
+ 00000028  E8 00000000 E		call SetTextColor
+					; place the cursor at the top left edge of the board
+ 0000002D  8B 45 0C		    mov eax, playTopEdgeOffset
+ 00000030  8B 5D 10		    mov ebx, playLeftEdgeOffset
+ 00000033  8A F0			mov dh, al
+ 00000035  8A D3			mov dl, bl
+ 00000037  E8 00000000 E		call Gotoxy
+					; load edx with the fill character
+ 0000003C  8B 55 20			mov edx, space
+					; print the borders
+ 0000003F  B9 00000002			mov ecx, 2
+ 00000044  51			L0: push ecx
+ 00000045  8B 4D 1C			mov ecx, boardColumnLength
+ 00000048  51			L1: push ecx
+ 00000049  8B 4D 14			mov ecx, boardRowLength
+ 0000004C  E8 00000000 E	L2: call WriteString	
+ 00000051  E2 F9			loop L2
+ 00000053  59				pop ecx
+ 00000054  E2 F2			loop L1
+ 00000056  59				pop ecx
+				    ; place the cursor at the start of the bottom border
+ 00000057  50			    push eax
+ 00000058  52			    push edx
+ 00000059  03 45 18		    add eax, boardsinBetween			; 
+ 0000005C  8A F0		    mov dh, al
+ 0000005E  8A D3			mov dl, bl
+ 00000060  E8 00000000 E		call Gotoxy
+ 00000065  5A			    pop edx
+ 00000066  58			    pop eax
+				    ; now repeat to draw the bottom border
+ 00000067  E2 DB			loop L0
 
-				    mGotoxy 36,2
- 000000D2  52		     1		push edx
- 000000D3  B6 02	     1		mov  dh,2
- 000000D5  B2 24	     1		mov  dl,36
- 000000D7  E8 00000000 E     1		call Gotoxy
- 000000DC  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000000DD  52		     1		push edx
- 000000DE  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000000E3  E8 00000000 E     1		call WriteString
- 000000E8  5A		     1		pop  edx
-				    mGotoxy 36,3
- 000000E9  52		     1		push edx
- 000000EA  B6 03	     1		mov  dh,3
- 000000EC  B2 24	     1		mov  dl,36
- 000000EE  E8 00000000 E     1		call Gotoxy
- 000000F3  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000000F4  52		     1		push edx
- 000000F5  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000000FA  E8 00000000 E     1		call WriteString
- 000000FF  5A		     1		pop  edx
-
-				    mGotoxy 32,4
- 00000100  52		     1		push edx
- 00000101  B6 04	     1		mov  dh,4
- 00000103  B2 20	     1		mov  dl,32
- 00000105  E8 00000000 E     1		call Gotoxy
- 0000010A  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000010B  52		     1		push edx
- 0000010C  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000111  E8 00000000 E     1		call WriteString
- 00000116  5A		     1		pop  edx
-				    mGotoxy 34,4
- 00000117  52		     1		push edx
- 00000118  B6 04	     1		mov  dh,4
- 0000011A  B2 22	     1		mov  dl,34
- 0000011C  E8 00000000 E     1		call Gotoxy
- 00000121  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000122  52		     1		push edx
- 00000123  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000128  E8 00000000 E     1		call WriteString
- 0000012D  5A		     1		pop  edx
-
-				    ;P
-				    mGotoxy 40,1
- 0000012E  52		     1		push edx
- 0000012F  B6 01	     1		mov  dh,1
- 00000131  B2 28	     1		mov  dl,40
- 00000133  E8 00000000 E     1		call Gotoxy
- 00000138  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000139  52		     1		push edx
- 0000013A  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000013F  E8 00000000 E     1		call WriteString
- 00000144  5A		     1		pop  edx
-				    mGotoxy 40,2
- 00000145  52		     1		push edx
- 00000146  B6 02	     1		mov  dh,2
- 00000148  B2 28	     1		mov  dl,40
- 0000014A  E8 00000000 E     1		call Gotoxy
- 0000014F  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000150  52		     1		push edx
- 00000151  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000156  E8 00000000 E     1		call WriteString
- 0000015B  5A		     1		pop  edx
-				    mGotoxy 40,3
- 0000015C  52		     1		push edx
- 0000015D  B6 03	     1		mov  dh,3
- 0000015F  B2 28	     1		mov  dl,40
- 00000161  E8 00000000 E     1		call Gotoxy
- 00000166  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000167  52		     1		push edx
- 00000168  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000016D  E8 00000000 E     1		call WriteString
- 00000172  5A		     1		pop  edx
-				    mGotoxy 40,4
- 00000173  52		     1		push edx
- 00000174  B6 04	     1		mov  dh,4
- 00000176  B2 28	     1		mov  dl,40
- 00000178  E8 00000000 E     1		call Gotoxy
- 0000017D  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000017E  52		     1		push edx
- 0000017F  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000184  E8 00000000 E     1		call WriteString
- 00000189  5A		     1		pop  edx
-				    mGotoxy 40,5
- 0000018A  52		     1		push edx
- 0000018B  B6 05	     1		mov  dh,5
- 0000018D  B2 28	     1		mov  dl,40
- 0000018F  E8 00000000 E     1		call Gotoxy
- 00000194  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000195  52		     1		push edx
- 00000196  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000019B  E8 00000000 E     1		call WriteString
- 000001A0  5A		     1		pop  edx
-				    mGotoxy 40,6
- 000001A1  52		     1		push edx
- 000001A2  B6 06	     1		mov  dh,6
- 000001A4  B2 28	     1		mov  dl,40
- 000001A6  E8 00000000 E     1		call Gotoxy
- 000001AB  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000001AC  52		     1		push edx
- 000001AD  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000001B2  E8 00000000 E     1		call WriteString
- 000001B7  5A		     1		pop  edx
-
-				    mGotoxy 42,1
- 000001B8  52		     1		push edx
- 000001B9  B6 01	     1		mov  dh,1
- 000001BB  B2 2A	     1		mov  dl,42
- 000001BD  E8 00000000 E     1		call Gotoxy
- 000001C2  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000001C3  52		     1		push edx
- 000001C4  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000001C9  E8 00000000 E     1		call WriteString
- 000001CE  5A		     1		pop  edx
-				    mGotoxy 44,1
- 000001CF  52		     1		push edx
- 000001D0  B6 01	     1		mov  dh,1
- 000001D2  B2 2C	     1		mov  dl,44
- 000001D4  E8 00000000 E     1		call Gotoxy
- 000001D9  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000001DA  52		     1		push edx
- 000001DB  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000001E0  E8 00000000 E     1		call WriteString
- 000001E5  5A		     1		pop  edx
-
-				    mGotoxy 46,2
- 000001E6  52		     1		push edx
- 000001E7  B6 02	     1		mov  dh,2
- 000001E9  B2 2E	     1		mov  dl,46
- 000001EB  E8 00000000 E     1		call Gotoxy
- 000001F0  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000001F1  52		     1		push edx
- 000001F2  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000001F7  E8 00000000 E     1		call WriteString
- 000001FC  5A		     1		pop  edx
-				    mGotoxy 46,3
- 000001FD  52		     1		push edx
- 000001FE  B6 03	     1		mov  dh,3
- 00000200  B2 2E	     1		mov  dl,46
- 00000202  E8 00000000 E     1		call Gotoxy
- 00000207  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000208  52		     1		push edx
- 00000209  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000020E  E8 00000000 E     1		call WriteString
- 00000213  5A		     1		pop  edx
-
-				    mGotoxy 42,4
- 00000214  52		     1		push edx
- 00000215  B6 04	     1		mov  dh,4
- 00000217  B2 2A	     1		mov  dl,42
- 00000219  E8 00000000 E     1		call Gotoxy
- 0000021E  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000021F  52		     1		push edx
- 00000220  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000225  E8 00000000 E     1		call WriteString
- 0000022A  5A		     1		pop  edx
-				    mGotoxy 44,4
- 0000022B  52		     1		push edx
- 0000022C  B6 04	     1		mov  dh,4
- 0000022E  B2 2C	     1		mov  dl,44
- 00000230  E8 00000000 E     1		call Gotoxy
- 00000235  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000236  52		     1		push edx
- 00000237  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000023C  E8 00000000 E     1		call WriteString
- 00000241  5A		     1		pop  edx
-				    
-				    ;B
-				    mGotoxy 50,1
- 00000242  52		     1		push edx
- 00000243  B6 01	     1		mov  dh,1
- 00000245  B2 32	     1		mov  dl,50
- 00000247  E8 00000000 E     1		call Gotoxy
- 0000024C  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000024D  52		     1		push edx
- 0000024E  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000253  E8 00000000 E     1		call WriteString
- 00000258  5A		     1		pop  edx
-				    mGotoxy 50,2
- 00000259  52		     1		push edx
- 0000025A  B6 02	     1		mov  dh,2
- 0000025C  B2 32	     1		mov  dl,50
- 0000025E  E8 00000000 E     1		call Gotoxy
- 00000263  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000264  52		     1		push edx
- 00000265  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000026A  E8 00000000 E     1		call WriteString
- 0000026F  5A		     1		pop  edx
-				    mGotoxy 50,3
- 00000270  52		     1		push edx
- 00000271  B6 03	     1		mov  dh,3
- 00000273  B2 32	     1		mov  dl,50
- 00000275  E8 00000000 E     1		call Gotoxy
- 0000027A  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000027B  52		     1		push edx
- 0000027C  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000281  E8 00000000 E     1		call WriteString
- 00000286  5A		     1		pop  edx
-				    mGotoxy 50,4
- 00000287  52		     1		push edx
- 00000288  B6 04	     1		mov  dh,4
- 0000028A  B2 32	     1		mov  dl,50
- 0000028C  E8 00000000 E     1		call Gotoxy
- 00000291  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000292  52		     1		push edx
- 00000293  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000298  E8 00000000 E     1		call WriteString
- 0000029D  5A		     1		pop  edx
-				    mGotoxy 50,5
- 0000029E  52		     1		push edx
- 0000029F  B6 05	     1		mov  dh,5
- 000002A1  B2 32	     1		mov  dl,50
- 000002A3  E8 00000000 E     1		call Gotoxy
- 000002A8  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000002A9  52		     1		push edx
- 000002AA  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000002AF  E8 00000000 E     1		call WriteString
- 000002B4  5A		     1		pop  edx
-				    mGotoxy 50,6
- 000002B5  52		     1		push edx
- 000002B6  B6 06	     1		mov  dh,6
- 000002B8  B2 32	     1		mov  dl,50
- 000002BA  E8 00000000 E     1		call Gotoxy
- 000002BF  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000002C0  52		     1		push edx
- 000002C1  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000002C6  E8 00000000 E     1		call WriteString
- 000002CB  5A		     1		pop  edx
-
-				    mGotoxy 52,1
- 000002CC  52		     1		push edx
- 000002CD  B6 01	     1		mov  dh,1
- 000002CF  B2 34	     1		mov  dl,52
- 000002D1  E8 00000000 E     1		call Gotoxy
- 000002D6  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000002D7  52		     1		push edx
- 000002D8  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000002DD  E8 00000000 E     1		call WriteString
- 000002E2  5A		     1		pop  edx
-				    mGotoxy 54,1
- 000002E3  52		     1		push edx
- 000002E4  B6 01	     1		mov  dh,1
- 000002E6  B2 36	     1		mov  dl,54
- 000002E8  E8 00000000 E     1		call Gotoxy
- 000002ED  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000002EE  52		     1		push edx
- 000002EF  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000002F4  E8 00000000 E     1		call WriteString
- 000002F9  5A		     1		pop  edx
-
-				    mGotoxy 56,2
- 000002FA  52		     1		push edx
- 000002FB  B6 02	     1		mov  dh,2
- 000002FD  B2 38	     1		mov  dl,56
- 000002FF  E8 00000000 E     1		call Gotoxy
- 00000304  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000305  52		     1		push edx
- 00000306  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000030B  E8 00000000 E     1		call WriteString
- 00000310  5A		     1		pop  edx
-				    mGotoxy 56,3
- 00000311  52		     1		push edx
- 00000312  B6 03	     1		mov  dh,3
- 00000314  B2 38	     1		mov  dl,56
- 00000316  E8 00000000 E     1		call Gotoxy
- 0000031B  5A		     1		pop  edx
-
-				    mGotoxy 52,3
- 0000031C  52		     1		push edx
- 0000031D  B6 03	     1		mov  dh,3
- 0000031F  B2 34	     1		mov  dl,52
- 00000321  E8 00000000 E     1		call Gotoxy
- 00000326  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000327  52		     1		push edx
- 00000328  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000032D  E8 00000000 E     1		call WriteString
- 00000332  5A		     1		pop  edx
-				    mGotoxy 54,3
- 00000333  52		     1		push edx
- 00000334  B6 03	     1		mov  dh,3
- 00000336  B2 36	     1		mov  dl,54
- 00000338  E8 00000000 E     1		call Gotoxy
- 0000033D  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000033E  52		     1		push edx
- 0000033F  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000344  E8 00000000 E     1		call WriteString
- 00000349  5A		     1		pop  edx
-
-				    mGotoxy 56,4
- 0000034A  52		     1		push edx
- 0000034B  B6 04	     1		mov  dh,4
- 0000034D  B2 38	     1		mov  dl,56
- 0000034F  E8 00000000 E     1		call Gotoxy
- 00000354  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000355  52		     1		push edx
- 00000356  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000035B  E8 00000000 E     1		call WriteString
- 00000360  5A		     1		pop  edx
-				    mGotoxy 56,5
- 00000361  52		     1		push edx
- 00000362  B6 05	     1		mov  dh,5
- 00000364  B2 38	     1		mov  dl,56
- 00000366  E8 00000000 E     1		call Gotoxy
- 0000036B  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000036C  52		     1		push edx
- 0000036D  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000372  E8 00000000 E     1		call WriteString
- 00000377  5A		     1		pop  edx
-
-				    mGotoxy 52,6
- 00000378  52		     1		push edx
- 00000379  B6 06	     1		mov  dh,6
- 0000037B  B2 34	     1		mov  dl,52
- 0000037D  E8 00000000 E     1		call Gotoxy
- 00000382  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000383  52		     1		push edx
- 00000384  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000389  E8 00000000 E     1		call WriteString
- 0000038E  5A		     1		pop  edx
-				    mGotoxy 54,6
- 0000038F  52		     1		push edx
- 00000390  B6 06	     1		mov  dh,6
- 00000392  B2 36	     1		mov  dl,54
- 00000394  E8 00000000 E     1		call Gotoxy
- 00000399  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000039A  52		     1		push edx
- 0000039B  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000003A0  E8 00000000 E     1		call WriteString
- 000003A5  5A		     1		pop  edx
-
-
-				    ;A
-				    mGotoxy 60,2
- 000003A6  52		     1		push edx
- 000003A7  B6 02	     1		mov  dh,2
- 000003A9  B2 3C	     1		mov  dl,60
- 000003AB  E8 00000000 E     1		call Gotoxy
- 000003B0  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000003B1  52		     1		push edx
- 000003B2  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000003B7  E8 00000000 E     1		call WriteString
- 000003BC  5A		     1		pop  edx
-				    mGotoxy 60,3
- 000003BD  52		     1		push edx
- 000003BE  B6 03	     1		mov  dh,3
- 000003C0  B2 3C	     1		mov  dl,60
- 000003C2  E8 00000000 E     1		call Gotoxy
- 000003C7  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000003C8  52		     1		push edx
- 000003C9  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000003CE  E8 00000000 E     1		call WriteString
- 000003D3  5A		     1		pop  edx
-				    mGotoxy 60,4
- 000003D4  52		     1		push edx
- 000003D5  B6 04	     1		mov  dh,4
- 000003D7  B2 3C	     1		mov  dl,60
- 000003D9  E8 00000000 E     1		call Gotoxy
- 000003DE  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000003DF  52		     1		push edx
- 000003E0  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000003E5  E8 00000000 E     1		call WriteString
- 000003EA  5A		     1		pop  edx
-				    mGotoxy 60,5
- 000003EB  52		     1		push edx
- 000003EC  B6 05	     1		mov  dh,5
- 000003EE  B2 3C	     1		mov  dl,60
- 000003F0  E8 00000000 E     1		call Gotoxy
- 000003F5  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000003F6  52		     1		push edx
- 000003F7  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000003FC  E8 00000000 E     1		call WriteString
- 00000401  5A		     1		pop  edx
-				    mGotoxy 60,6
- 00000402  52		     1		push edx
- 00000403  B6 06	     1		mov  dh,6
- 00000405  B2 3C	     1		mov  dl,60
- 00000407  E8 00000000 E     1		call Gotoxy
- 0000040C  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000040D  52		     1		push edx
- 0000040E  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000413  E8 00000000 E     1		call WriteString
- 00000418  5A		     1		pop  edx
-
-				    mGotoxy 66,2
- 00000419  52		     1		push edx
- 0000041A  B6 02	     1		mov  dh,2
- 0000041C  B2 42	     1		mov  dl,66
- 0000041E  E8 00000000 E     1		call Gotoxy
- 00000423  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000424  52		     1		push edx
- 00000425  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000042A  E8 00000000 E     1		call WriteString
- 0000042F  5A		     1		pop  edx
-				    mGotoxy 66,3
- 00000430  52		     1		push edx
- 00000431  B6 03	     1		mov  dh,3
- 00000433  B2 42	     1		mov  dl,66
- 00000435  E8 00000000 E     1		call Gotoxy
- 0000043A  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000043B  52		     1		push edx
- 0000043C  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000441  E8 00000000 E     1		call WriteString
- 00000446  5A		     1		pop  edx
-				    mGotoxy 66,4
- 00000447  52		     1		push edx
- 00000448  B6 04	     1		mov  dh,4
- 0000044A  B2 42	     1		mov  dl,66
- 0000044C  E8 00000000 E     1		call Gotoxy
- 00000451  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000452  52		     1		push edx
- 00000453  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000458  E8 00000000 E     1		call WriteString
- 0000045D  5A		     1		pop  edx
-				    mGotoxy 66,5
- 0000045E  52		     1		push edx
- 0000045F  B6 05	     1		mov  dh,5
- 00000461  B2 42	     1		mov  dl,66
- 00000463  E8 00000000 E     1		call Gotoxy
- 00000468  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000469  52		     1		push edx
- 0000046A  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000046F  E8 00000000 E     1		call WriteString
- 00000474  5A		     1		pop  edx
-				    mGotoxy 66,6
- 00000475  52		     1		push edx
- 00000476  B6 06	     1		mov  dh,6
- 00000478  B2 42	     1		mov  dl,66
- 0000047A  E8 00000000 E     1		call Gotoxy
- 0000047F  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000480  52		     1		push edx
- 00000481  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000486  E8 00000000 E     1		call WriteString
- 0000048B  5A		     1		pop  edx
-
-				    mGotoxy 62,1
- 0000048C  52		     1		push edx
- 0000048D  B6 01	     1		mov  dh,1
- 0000048F  B2 3E	     1		mov  dl,62
- 00000491  E8 00000000 E     1		call Gotoxy
- 00000496  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000497  52		     1		push edx
- 00000498  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000049D  E8 00000000 E     1		call WriteString
- 000004A2  5A		     1		pop  edx
-				    mGotoxy 64,1
- 000004A3  52		     1		push edx
- 000004A4  B6 01	     1		mov  dh,1
- 000004A6  B2 40	     1		mov  dl,64
- 000004A8  E8 00000000 E     1		call Gotoxy
- 000004AD  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000004AE  52		     1		push edx
- 000004AF  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000004B4  E8 00000000 E     1		call WriteString
- 000004B9  5A		     1		pop  edx
-
-				    mGotoxy 62,4
- 000004BA  52		     1		push edx
- 000004BB  B6 04	     1		mov  dh,4
- 000004BD  B2 3E	     1		mov  dl,62
- 000004BF  E8 00000000 E     1		call Gotoxy
- 000004C4  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000004C5  52		     1		push edx
- 000004C6  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000004CB  E8 00000000 E     1		call WriteString
- 000004D0  5A		     1		pop  edx
-				    mGotoxy 64,4
- 000004D1  52		     1		push edx
- 000004D2  B6 04	     1		mov  dh,4
- 000004D4  B2 40	     1		mov  dl,64
- 000004D6  E8 00000000 E     1		call Gotoxy
- 000004DB  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000004DC  52		     1		push edx
- 000004DD  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000004E2  E8 00000000 E     1		call WriteString
- 000004E7  5A		     1		pop  edx
-
-				    ;L
-				    mGotoxy 70,1
- 000004E8  52		     1		push edx
- 000004E9  B6 01	     1		mov  dh,1
- 000004EB  B2 46	     1		mov  dl,70
- 000004ED  E8 00000000 E     1		call Gotoxy
- 000004F2  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000004F3  52		     1		push edx
- 000004F4  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000004F9  E8 00000000 E     1		call WriteString
- 000004FE  5A		     1		pop  edx
-				    mGotoxy 70,2
- 000004FF  52		     1		push edx
- 00000500  B6 02	     1		mov  dh,2
- 00000502  B2 46	     1		mov  dl,70
- 00000504  E8 00000000 E     1		call Gotoxy
- 00000509  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000050A  52		     1		push edx
- 0000050B  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000510  E8 00000000 E     1		call WriteString
- 00000515  5A		     1		pop  edx
-				    mGotoxy 70,3
- 00000516  52		     1		push edx
- 00000517  B6 03	     1		mov  dh,3
- 00000519  B2 46	     1		mov  dl,70
- 0000051B  E8 00000000 E     1		call Gotoxy
- 00000520  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000521  52		     1		push edx
- 00000522  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000527  E8 00000000 E     1		call WriteString
- 0000052C  5A		     1		pop  edx
-				    mGotoxy 70,4
- 0000052D  52		     1		push edx
- 0000052E  B6 04	     1		mov  dh,4
- 00000530  B2 46	     1		mov  dl,70
- 00000532  E8 00000000 E     1		call Gotoxy
- 00000537  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000538  52		     1		push edx
- 00000539  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000053E  E8 00000000 E     1		call WriteString
- 00000543  5A		     1		pop  edx
-				    mGotoxy 70,5
- 00000544  52		     1		push edx
- 00000545  B6 05	     1		mov  dh,5
- 00000547  B2 46	     1		mov  dl,70
- 00000549  E8 00000000 E     1		call Gotoxy
- 0000054E  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000054F  52		     1		push edx
- 00000550  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000555  E8 00000000 E     1		call WriteString
- 0000055A  5A		     1		pop  edx
-				    mGotoxy 70,6
- 0000055B  52		     1		push edx
- 0000055C  B6 06	     1		mov  dh,6
- 0000055E  B2 46	     1		mov  dl,70
- 00000560  E8 00000000 E     1		call Gotoxy
- 00000565  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000566  52		     1		push edx
- 00000567  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000056C  E8 00000000 E     1		call WriteString
- 00000571  5A		     1		pop  edx
-
-				    mGotoxy 72,6
- 00000572  52		     1		push edx
- 00000573  B6 06	     1		mov  dh,6
- 00000575  B2 48	     1		mov  dl,72
- 00000577  E8 00000000 E     1		call Gotoxy
- 0000057C  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000057D  52		     1		push edx
- 0000057E  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000583  E8 00000000 E     1		call WriteString
- 00000588  5A		     1		pop  edx
-				    mGotoxy 74,6
- 00000589  52		     1		push edx
- 0000058A  B6 06	     1		mov  dh,6
- 0000058C  B2 4A	     1		mov  dl,74
- 0000058E  E8 00000000 E     1		call Gotoxy
- 00000593  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000594  52		     1		push edx
- 00000595  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000059A  E8 00000000 E     1		call WriteString
- 0000059F  5A		     1		pop  edx
-				    mGotoxy 76,6
- 000005A0  52		     1		push edx
- 000005A1  B6 06	     1		mov  dh,6
- 000005A3  B2 4C	     1		mov  dl,76
- 000005A5  E8 00000000 E     1		call Gotoxy
- 000005AA  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000005AB  52		     1		push edx
- 000005AC  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000005B1  E8 00000000 E     1		call WriteString
- 000005B6  5A		     1		pop  edx
-
-				    ;L
-				    mGotoxy 80,1
- 000005B7  52		     1		push edx
- 000005B8  B6 01	     1		mov  dh,1
- 000005BA  B2 50	     1		mov  dl,80
- 000005BC  E8 00000000 E     1		call Gotoxy
- 000005C1  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000005C2  52		     1		push edx
- 000005C3  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000005C8  E8 00000000 E     1		call WriteString
- 000005CD  5A		     1		pop  edx
-				    mGotoxy 80,2
- 000005CE  52		     1		push edx
- 000005CF  B6 02	     1		mov  dh,2
- 000005D1  B2 50	     1		mov  dl,80
- 000005D3  E8 00000000 E     1		call Gotoxy
- 000005D8  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000005D9  52		     1		push edx
- 000005DA  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000005DF  E8 00000000 E     1		call WriteString
- 000005E4  5A		     1		pop  edx
-				    mGotoxy 80,3
- 000005E5  52		     1		push edx
- 000005E6  B6 03	     1		mov  dh,3
- 000005E8  B2 50	     1		mov  dl,80
- 000005EA  E8 00000000 E     1		call Gotoxy
- 000005EF  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 000005F0  52		     1		push edx
- 000005F1  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 000005F6  E8 00000000 E     1		call WriteString
- 000005FB  5A		     1		pop  edx
-				    mGotoxy 80,4
- 000005FC  52		     1		push edx
- 000005FD  B6 04	     1		mov  dh,4
- 000005FF  B2 50	     1		mov  dl,80
- 00000601  E8 00000000 E     1		call Gotoxy
- 00000606  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000607  52		     1		push edx
- 00000608  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000060D  E8 00000000 E     1		call WriteString
- 00000612  5A		     1		pop  edx
-				    mGotoxy 80,5
- 00000613  52		     1		push edx
- 00000614  B6 05	     1		mov  dh,5
- 00000616  B2 50	     1		mov  dl,80
- 00000618  E8 00000000 E     1		call Gotoxy
- 0000061D  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000061E  52		     1		push edx
- 0000061F  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000624  E8 00000000 E     1		call WriteString
- 00000629  5A		     1		pop  edx
-				    mGotoxy 80,6
- 0000062A  52		     1		push edx
- 0000062B  B6 06	     1		mov  dh,6
- 0000062D  B2 50	     1		mov  dl,80
- 0000062F  E8 00000000 E     1		call Gotoxy
- 00000634  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000635  52		     1		push edx
- 00000636  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 0000063B  E8 00000000 E     1		call WriteString
- 00000640  5A		     1		pop  edx
-
-				    mGotoxy 82,6
- 00000641  52		     1		push edx
- 00000642  B6 06	     1		mov  dh,6
- 00000644  B2 52	     1		mov  dl,82
- 00000646  E8 00000000 E     1		call Gotoxy
- 0000064B  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000064C  52		     1		push edx
- 0000064D  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000652  E8 00000000 E     1		call WriteString
- 00000657  5A		     1		pop  edx
-				    mGotoxy 84,6
- 00000658  52		     1		push edx
- 00000659  B6 06	     1		mov  dh,6
- 0000065B  B2 54	     1		mov  dl,84
- 0000065D  E8 00000000 E     1		call Gotoxy
- 00000662  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 00000663  52		     1		push edx
- 00000664  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000669  E8 00000000 E     1		call WriteString
- 0000066E  5A		     1		pop  edx
-				    mGotoxy 86,6
- 0000066F  52		     1		push edx
- 00000670  B6 06	     1		mov  dh,6
- 00000672  B2 56	     1		mov  dl,86
- 00000674  E8 00000000 E     1		call Gotoxy
- 00000679  5A		     1		pop  edx
-				    mWriteString OFFSET space2
- 0000067A  52		     1		push edx
- 0000067B  BA 00000119 R     1		mov  edx,OFFSET OFFSET space2
- 00000680  E8 00000000 E     1		call WriteString
- 00000685  5A		     1		pop  edx
-
-				    ;WE ARE?
- 00000686  B8 0000008F		    mov eax, white + (gray*16)
- 0000068B  E8 00000000 E	    call SetTextColor
-				    mGotoxy 53,10
- 00000690  52		     1		push edx
- 00000691  B6 0A	     1		mov  dh,10
- 00000693  B2 35	     1		mov  dl,53
- 00000695  E8 00000000 E     1		call Gotoxy
- 0000069A  5A		     1		pop  edx
-				    mWriteString OFFSET MenuClass
- 0000069B  52		     1		push edx
- 0000069C  BA 0000000A R     1		mov  edx,OFFSET OFFSET MenuClass
- 000006A1  E8 00000000 E     1		call WriteString
- 000006A6  5A		     1		pop  edx
-
- 000006A7  B8 0000000F		    mov eax, white + (black*16)
- 000006AC  E8 00000000 E	    call SetTextColor
-				    mGotoxy 51,13
- 000006B1  52		     1		push edx
- 000006B2  B6 0D	     1		mov  dh,13
- 000006B4  B2 33	     1		mov  dl,51
- 000006B6  E8 00000000 E     1		call Gotoxy
- 000006BB  5A		     1		pop  edx
-				    mWriteString OFFSET MenuOurName1
- 000006BC  52		     1		push edx
- 000006BD  BA 00000017 R     1		mov  edx,OFFSET OFFSET MenuOurName1
- 000006C2  E8 00000000 E     1		call WriteString
- 000006C7  5A		     1		pop  edx
-				    mGotoxy 51,15
- 000006C8  52		     1		push edx
- 000006C9  B6 0F	     1		mov  dh,15
- 000006CB  B2 33	     1		mov  dl,51
- 000006CD  E8 00000000 E     1		call Gotoxy
- 000006D2  5A		     1		pop  edx
-				    mWriteString OFFSET MenuOurName2
- 000006D3  52		     1		push edx
- 000006D4  BA 00000028 R     1		mov  edx,OFFSET OFFSET MenuOurName2
- 000006D9  E8 00000000 E     1		call WriteString
- 000006DE  5A		     1		pop  edx
-
-				    ;遊戲介紹 
- 000006DF  B8 0000008F		    mov eax, white + (gray*16)
- 000006E4  E8 00000000 E	    call SetTextColor
-				    mGotoxy 37,18
- 000006E9  52		     1		push edx
- 000006EA  B6 12	     1		mov  dh,18
- 000006EC  B2 25	     1		mov  dl,37
- 000006EE  E8 00000000 E     1		call Gotoxy
- 000006F3  5A		     1		pop  edx
-				    mWriteString OFFSET MenuIntroTitle      ;遊戲介紹
- 000006F4  52		     1		push edx
- 000006F5  BA 00000039 R     1		mov  edx,OFFSET OFFSET MenuIntroTitle
- 000006FA  E8 00000000 E     1		call WriteString
- 000006FF  5A		     1		pop  edx
-
- 00000700  B8 0000000F		    mov eax, white + (black*16)
- 00000705  E8 00000000 E	    call SetTextColor
-				    mGotoxy 50, 20
- 0000070A  52		     1		push edx
- 0000070B  B6 14	     1		mov  dh,20
- 0000070D  B2 32	     1		mov  dl,50
- 0000070F  E8 00000000 E     1		call Gotoxy
- 00000714  5A		     1		pop  edx
-				    mWriteString OFFSET MenuPlayerOne1
- 00000715  52		     1		push edx
- 00000716  BA 00000067 R     1		mov  edx,OFFSET OFFSET MenuPlayerOne1
- 0000071B  E8 00000000 E     1		call WriteString
- 00000720  5A		     1		pop  edx
-				    mGotoxy 45,22
- 00000721  52		     1		push edx
- 00000722  B6 16	     1		mov  dh,22
- 00000724  B2 2D	     1		mov  dl,45
- 00000726  E8 00000000 E     1		call Gotoxy
- 0000072B  5A		     1		pop  edx
-				    mWriteString OFFSET MenuPlayerOne2
- 0000072C  52		     1		push edx
- 0000072D  BA 0000007C R     1		mov  edx,OFFSET OFFSET MenuPlayerOne2
- 00000732  E8 00000000 E     1		call WriteString
- 00000737  5A		     1		pop  edx
- 00000738  B8 0000009F		    mov eax, white + (lightBlue*16)
- 0000073D  E8 00000000 E	    call SetTextColor
-				    mWriteString OFFSET MenuPlayerOne3
- 00000742  52		     1		push edx
- 00000743  BA 00000089 R     1		mov  edx,OFFSET OFFSET MenuPlayerOne3
- 00000748  E8 00000000 E     1		call WriteString
- 0000074D  5A		     1		pop  edx
- 0000074E  B8 0000000F		    mov eax, white + (black*16)
- 00000753  E8 00000000 E	    call SetTextColor
-				    mWriteString OFFSET MenuPlayerOne4
- 00000758  52		     1		push edx
- 00000759  BA 00000094 R     1		mov  edx,OFFSET OFFSET MenuPlayerOne4
- 0000075E  E8 00000000 E     1		call WriteString
- 00000763  5A		     1		pop  edx
-
-				    mGotoxy 50, 25
- 00000764  52		     1		push edx
- 00000765  B6 19	     1		mov  dh,25
- 00000767  B2 32	     1		mov  dl,50
- 00000769  E8 00000000 E     1		call Gotoxy
- 0000076E  5A		     1		pop  edx
-				    mWriteString OFFSET MenuPlayerTwo1
- 0000076F  52		     1		push edx
- 00000770  BA 0000009D R     1		mov  edx,OFFSET OFFSET MenuPlayerTwo1
- 00000775  E8 00000000 E     1		call WriteString
- 0000077A  5A		     1		pop  edx
-				    mGotoxy 45,27
- 0000077B  52		     1		push edx
- 0000077C  B6 1B	     1		mov  dh,27
- 0000077E  B2 2D	     1		mov  dl,45
- 00000780  E8 00000000 E     1		call Gotoxy
- 00000785  5A		     1		pop  edx
-				    mWriteString OFFSET MenuPlayerTwo2
- 00000786  52		     1		push edx
- 00000787  BA 000000B4 R     1		mov  edx,OFFSET OFFSET MenuPlayerTwo2
- 0000078C  E8 00000000 E     1		call WriteString
- 00000791  5A		     1		pop  edx
- 00000792  B8 000000CF		    mov eax, white + (lightRed*16)
- 00000797  E8 00000000 E	    call SetTextColor
-				    mWriteString OFFSET MenuPlayerTwo3
- 0000079C  52		     1		push edx
- 0000079D  BA 000000C1 R     1		mov  edx,OFFSET OFFSET MenuPlayerTwo3
- 000007A2  E8 00000000 E     1		call WriteString
- 000007A7  5A		     1		pop  edx
- 000007A8  B8 0000000F		    mov eax, white + (black*16)
- 000007AD  E8 00000000 E	    call SetTextColor
-				    mWriteString OFFSET MenuPlayerTwo4
- 000007B2  52		     1		push edx
- 000007B3  BA 000000CC R     1		mov  edx,OFFSET OFFSET MenuPlayerTwo4
- 000007B8  E8 00000000 E     1		call WriteString
- 000007BD  5A		     1		pop  edx
-
-				    mGotoxy 44, 30
- 000007BE  52		     1		push edx
- 000007BF  B6 1E	     1		mov  dh,30
- 000007C1  B2 2C	     1		mov  dl,44
- 000007C3  E8 00000000 E     1		call Gotoxy
- 000007C8  5A		     1		pop  edx
-				    mWriteString OFFSET MenuStartGame1
- 000007C9  52		     1		push edx
- 000007CA  BA 000000D5 R     1		mov  edx,OFFSET OFFSET MenuStartGame1
- 000007CF  E8 00000000 E     1		call WriteString
- 000007D4  5A		     1		pop  edx
- 000007D5  B8 000000DF		    mov eax, white + (lightMagenta*16)
- 000007DA  E8 00000000 E	    call SetTextColor
-				    mGotoxy 56, 32
- 000007DF  52		     1		push edx
- 000007E0  B6 20	     1		mov  dh,32
- 000007E2  B2 38	     1		mov  dl,56
- 000007E4  E8 00000000 E     1		call Gotoxy
- 000007E9  5A		     1		pop  edx
-				    mWriteString OFFSET MenuStartGame2
- 000007EA  52		     1		push edx
- 000007EB  BA 000000F6 R     1		mov  edx,OFFSET OFFSET MenuStartGame2
- 000007F0  E8 00000000 E     1		call WriteString
- 000007F5  5A		     1		pop  edx
- 000007F6  B8 0000000F		    mov eax, white + (black*16)
- 000007FB  E8 00000000 E	    call SetTextColor
-				    mWriteString OFFSET space
- 00000800  52		     1		push edx
- 00000801  BA 00000117 R     1		mov  edx,OFFSET OFFSET space
- 00000806  E8 00000000 E     1		call WriteString
- 0000080B  5A		     1		pop  edx
-
-
-
-				    
-
- 0000080C			stop:
- 0000080C  E8 00000000 E	    call ReadChar
-				    mGotoxy 0,0
- 00000811  52		     1		push edx
- 00000812  B6 00	     1		mov  dh,0
- 00000814  B2 00	     1		mov  dl,0
- 00000816  E8 00000000 E     1		call Gotoxy
- 0000081B  5A		     1		pop  edx
-				    mWriteString OFFSET space
- 0000081C  52		     1		push edx
- 0000081D  BA 00000117 R     1		mov  edx,OFFSET OFFSET space
- 00000822  E8 00000000 E     1		call WriteString
- 00000827  5A		     1		pop  edx
-				    
-
- 00000828			NextState:
-				    ;先設定背景色 黑色~
- 00000828  E8 00000000 E	    call clrscr
- 0000082D  60			    pushad
-
- 0000082E  33 C0		    XOR eax,eax
- 00000830  B8 0000000F		     mov eax, white+(black*16)
- 00000835  E8 00000000 E	     call SetTextColor
-
- 0000083A			ppballMain:
- 0000083A  B8 0000000F		     mov eax, white+(black*16)
- 0000083F  E8 00000000 E	     call SetTextColor
-				     invoke DrawFrame, GUI_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
-				     invoke ShowFirstTwoPaddles, PADDLE_COLOR, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr spacePaddle
-					 invoke UpdateBall, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
-				                        BOARD_BETWEEN, player1X, player1Y, player2X, player2Y, paddleHeight
- 000008C7  41			     inc ecx ; increment ecx to keep the loop going...when the ball goes out of bounds, set ecx to 0 so the inner loop can finish
-				     invoke Chill, FRAME_RATE
-
-				     ; check for movement and redraw paddle accordingly
-				     invoke ReadKeyBoard, PADDLE_COLOR, addr player1x, addr player1Y, addr player2X, addr player2y, paddleHeight, 
-				                            playTopEdge, playLowEdge
- 000008FF  E9 FFFFFF36			jmp ppballMain
 					
+					; set the text and background colors back to the defaults like a friend
+ 00000069  B8 00000000			mov eax, 0
+ 0000006E  E8 00000000 E		call SetTextColor
+				    ; move the cursor back to the top left corner of the console
+ 00000073  BA 00000000		    mov edx, 0
+ 00000078  E8 00000000 E	    call Gotoxy
 					
-				     exit
- 0000090B			main endp
-				end main
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 19:41:59
-ppball.asm						     Symbols 2 - 1
+					; and done
+ 0000007D  61				popad
+					ret
+ 00000082			DrawFrame endp
+				end
+					
+	
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/14/22 19:56:28
+_drawframe.asm						     Symbols 2 - 1
 
 
 
@@ -1368,8 +301,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000133 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000090B Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000000A Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000082 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -1385,7 +318,17 @@ CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawBall . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawFrame  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DrawFrame  . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000082 Public STDCALL
+  color  . . . . . . . . . . . .	DWord	 bp + 00000008
+  playTopEdgeOffset  . . . . . .	DWord	 bp + 0000000C
+  playLeftEdgeOffset . . . . . .	DWord	 bp + 00000010
+  boardRowLength . . . . . . . .	DWord	 bp + 00000014
+  boardsinBetween  . . . . . . .	DWord	 bp + 00000018
+  boardColumnLength  . . . . . .	DWord	 bp + 0000001C
+  space  . . . . . . . . . . . .	DWord	 bp + 00000020
+  L0 . . . . . . . . . . . . . .	L Near	 00000044 _TEXT	
+  L1 . . . . . . . . . . . . . .	L Near	 00000048 _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 0000004C _TEXT	
 DrawScore  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -1484,11 +427,6 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000090B Public STDCALL
-  Menu . . . . . . . . . . . . .	L Near	 00000005 _TEXT	
-  stop . . . . . . . . . . . . .	L Near	 0000080C _TEXT	
-  NextState  . . . . . . . . . .	L Near	 00000828 _TEXT	
-  ppballMain . . . . . . . . . .	L Near	 0000083A _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -1508,12 +446,6 @@ Symbols:
 @fardata . . . . . . . . . . . .	Text   	 FLAT
 @stack . . . . . . . . . . . . .	Text   	 FLAT
 ALT_MASK . . . . . . . . . . . .	Number	 00000003h   
-BALL_COLOR . . . . . . . . . . .	Number	 000000E0h   
-BOARD_BETWEEN  . . . . . . . . .	Number	 00000019h   
-BOARD_C_LENGTH . . . . . . . . .	Number	 00000001h   
-BOARD_R_LENGTH . . . . . . . . .	Number	 00000050h   
-Ball_X . . . . . . . . . . . . .	DWord	 00000107 _DATA	
-Ball_Y . . . . . . . . . . . . .	DWord	 0000010B _DATA	
 CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h   
 CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
 CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
@@ -1556,14 +488,11 @@ FILE_WRITE_DATA  . . . . . . . .	Number	 00000002h
 FOCUS_EVENT  . . . . . . . . . .	Number	 00000010h   
 FORMAT_MESSAGE_ALLOCATE_BUFFER .	Number	 00000100h   
 FORMAT_MESSAGE_FROM_SYSTEM . . .	Number	 00001000h   
-FRAME_RATE . . . . . . . . . . .	Number	 00000064h   
 FormatMessage  . . . . . . . . .	Text   	 FormatMessageA
 GENERIC_ALL  . . . . . . . . . .	Number	 10000000h   
 GENERIC_EXECUTE  . . . . . . . .	Number	 20000000h   
 GENERIC_READ . . . . . . . . . .	Number	 -80000000h   
 GENERIC_WRITE  . . . . . . . . .	Number	 40000000h   
-GUI_COLOR  . . . . . . . . . . .	Number	 0000007Dh   
-GUI_TEXT_COLOR . . . . . . . . .	Number	 0000000Fh   
 GetCommandLine . . . . . . . . .	Text   	 GetCommandLineA
 HANDLE . . . . . . . . . . . . .	Text   	 DWORD
 HEAP_GENERATE_EXCEPTIONS . . . .	Number	 00000004h   
@@ -1615,29 +544,11 @@ MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
-MenuClass  . . . . . . . . . . .	Byte	 0000000A _DATA	
-MenuIntroTitle . . . . . . . . .	Byte	 00000039 _DATA	
-MenuOurName1 . . . . . . . . . .	Byte	 00000017 _DATA	
-MenuOurName2 . . . . . . . . . .	Byte	 00000028 _DATA	
-MenuPlayerOne1 . . . . . . . . .	Byte	 00000067 _DATA	
-MenuPlayerOne2 . . . . . . . . .	Byte	 0000007C _DATA	
-MenuPlayerOne3 . . . . . . . . .	Byte	 00000089 _DATA	
-MenuPlayerOne4 . . . . . . . . .	Byte	 00000094 _DATA	
-MenuPlayerTwo1 . . . . . . . . .	Byte	 0000009D _DATA	
-MenuPlayerTwo2 . . . . . . . . .	Byte	 000000B4 _DATA	
-MenuPlayerTwo3 . . . . . . . . .	Byte	 000000C1 _DATA	
-MenuPlayerTwo4 . . . . . . . . .	Byte	 000000CC _DATA	
-MenuStartGame1 . . . . . . . . .	Byte	 000000D5 _DATA	
-MenuStartGame2 . . . . . . . . .	Byte	 000000F6 _DATA	
-MenuTitle  . . . . . . . . . . .	Byte	 00000000 _DATA	
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
 OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
 OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
-PADDLE_COLOR . . . . . . . . . .	Number	 000000B1h   
-PLAY_L_EDGE_OFFSET . . . . . . .	Number	 00000014h   
-PLAY_T_EDGE_OFFSET . . . . . . .	Number	 00000005h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
 RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
 RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
@@ -1737,7 +648,6 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-buffer . . . . . . . . . . . . .	Byte	 0000011E _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -1749,21 +659,10 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-paddleHeight . . . . . . . . . .	DWord	 0000012F _DATA	
-playLowEdge  . . . . . . . . . .	DWord	 00000103 _DATA	
-playTopEdge  . . . . . . . . . .	DWord	 000000FF _DATA	
-player1X . . . . . . . . . . . .	DWord	 0000011F _DATA	
-player1Y . . . . . . . . . . . .	DWord	 00000123 _DATA	
-player2X . . . . . . . . . . . .	DWord	 00000127 _DATA	
-player2Y . . . . . . . . . . . .	DWord	 0000012B _DATA	
+ppballTitle  . . . . . . . . . .	Byte	 00000000 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-space2 . . . . . . . . . . . . .	Byte	 00000119 _DATA	
-spacePaddle  . . . . . . . . . .	Byte	 0000011C _DATA	
-space  . . . . . . . . . . . . .	Byte	 00000117 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
-xRun . . . . . . . . . . . . . .	DWord	 0000010F _DATA	
-yRise  . . . . . . . . . . . . .	DWord	 00000113 _DATA	
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
