@@ -1,6 +1,9 @@
 include ppball.inc
 .data
 	ppballTitle byte "PPBALL !!",0
+	sidesBorderHeight dword 25d
+	space2 BYTE "  ",0
+
 .code
 DrawFrame proc,
     color: dword,
