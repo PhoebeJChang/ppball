@@ -1,9 +1,13 @@
 include Irvine32.inc
 include Macros.inc
 
+MenuPage proto,
+	colorTitle: dword,
+	colorText: dword
 
 ReadKeyBoard proto,
     color: dword,
+	color2: dword,
 	p1X: PTR dword,						; 玩家一 x座標
 	p1Y: PTR dword,						; 玩家一 y座標
 	p2X: PTR dword,						; 玩家二 x座標
@@ -14,6 +18,7 @@ ReadKeyBoard proto,
 
 ShowFirstTwoPaddles proto,
     color: dword,
+	color2: dword,
 	p1X: PTR dword,						; 玩家一 x座標
 	p1Y: PTR dword,						; 玩家一 y座標
 	p2X: PTR dword,						; 玩家二 x座標
@@ -50,7 +55,8 @@ DrawBall proto,
     p1Y: dword,
     p2X: dword,
     p2Y: dword,
-	paddleHeight: dword
+	paddleHeight: dword,
+	RESET_BALL_RATE: dword
 	
 ResetBall proto,
 	Ball_X: ptr dword,
@@ -58,7 +64,13 @@ ResetBall proto,
 	newBall_X: dword,
 	newBall_Y: dword,
 	xRun: ptr dword,
-	yRise: ptr dword
+	yRise: ptr dword,
+	RESET_BALL_RATE: ptr dword
  
-Chill proto,
+SpeedOfBall proto,
      timedu: dword
+
+
+
+NewBallTime proto,
+	timedu: ptr dword

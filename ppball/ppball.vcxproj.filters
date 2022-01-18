@@ -24,7 +24,7 @@
     <MASM Include="_ShowFirstTwoPaddles.asm">
       <Filter>Header Files</Filter>
     </MASM>
-    <MASM Include="_chill.asm">
+    <MASM Include="_SpeedOfBall.asm">
       <Filter>Header Files</Filter>
     </MASM>
     <MASM Include="_drawframe.asm">
@@ -34,6 +34,12 @@
       <Filter>Header Files</Filter>
     </MASM>
     <MASM Include="_updateball.asm">
+      <Filter>Header Files</Filter>
+    </MASM>
+    <MASM Include="_Menu.asm">
+      <Filter>Header Files</Filter>
+    </MASM>
+    <MASM Include="_newBallTime.asm">
       <Filter>Header Files</Filter>
     </MASM>
   </ItemGroup>

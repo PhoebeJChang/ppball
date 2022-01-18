@@ -1,12 +1,12 @@
-; (_chill.asm)
+; (_SpeedOfBall.asm)
 
 include ppball.inc
 
 .code 
-Chill PROC,
+SpeedOfBall PROC,
 	timedu: dword 
 
-	; timedu - the length of time to chill in milliseconds
+	; timedu - the length of time to SpeedOfBall in milliseconds
 
     pushad		;save general-purpose register
 
@@ -15,7 +15,7 @@ Chill PROC,
 
     popad		;restore
 	ret
-Chill endp
+SpeedOfBall endp
 end
 
 ;text 5.2.1

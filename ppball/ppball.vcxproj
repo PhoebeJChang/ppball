@@ -148,8 +148,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <MASM Include="ppball.asm" />
+    <MASM Include="_newBallTime.asm" />
+    <MASM Include="_Menu.asm" />
     <MASM Include="_ReadKeyBoard.asm" />
-    <MASM Include="_chill.asm" />
+    <MASM Include="_SpeedOfBall.asm" />
     <MASM Include="_drawframe.asm" />
     <MASM Include="_ShowFirstTwoPaddles.asm" />
     <MASM Include="_resetball.asm" />

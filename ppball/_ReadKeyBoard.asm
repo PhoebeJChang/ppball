@@ -5,6 +5,7 @@ space byte "*", 0                       ;用*填滿
 .code 
 ReadKeyBoard proc,
      color: dword,
+    color2: dword,
 	p1X: PTR dword,						; x-coord
 	p1Y: PTR dword,						; y-coord
 	p2X: PTR dword,						; x-coord
@@ -127,7 +128,7 @@ MoveUpP2:                                ; eax = p2Y
      mov dh, byte PTR [eax]                  ; y 座標
      sub dh, byte PTR [paddleHeight]
      call Gotoxy
-     mov eax, yellow+(lightRed*16)                    ; bg_color = black
+     mov eax, color2                    ; bg_color = black
      call SetTextColor
      mov edx, OFFSET space
      call WriteString                        ; clear bottom line
@@ -164,7 +165,7 @@ MoveDownP2:
      mov eax, p2Y
      mov dh, byte PTR [eax]                  ; y 座標
      call Gotoxy
-     mov eax, yellow+(lightRed*16)                    ; bg_color = color
+     mov eax, color2                    ; bg_color = color
      call SetTextColor
 
      mov edx, OFFSET space

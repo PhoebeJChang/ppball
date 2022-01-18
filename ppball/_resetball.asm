@@ -7,7 +7,8 @@ ResetBall proc,
 	newBall_X: dword,
 	newBall_Y: dword,
 	xRun: ptr dword,
-	yRise: ptr dword
+	yRise: ptr dword,
+	RESET_BALL_RATE: ptr dword
 
 	; save the register states from before the function call
 	pushad
@@ -27,8 +28,8 @@ ResetBall proc,
 	jg Endit
 	neg dword ptr [eax]
 Endit:
-	mov ecx, 1000
-	invoke Chill, ecx
+
+	invoke NewBallTime, RESET_BALL_RATE
 	
 	; restore the pre-function call register states
 	popad

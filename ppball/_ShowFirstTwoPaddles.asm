@@ -4,6 +4,7 @@ include ppball.inc
 .code 
 ShowFirstTwoPaddles proc,
      color: dword,
+    color2: dword,
 	p1X: PTR dword,						; x®y¼Ð
 	p1Y: PTR dword,						; y®y¼Ð
 	p2X: PTR dword,						; x®y¼Ð
@@ -52,7 +53,7 @@ player1PaddleDraw:
      mov ecx, [eax]
 player2PaddleDraw:
      call Gotoxy
-     mov eax, yellow+(lightRed*16)
+     mov eax, color2
      call SetTextColor
 
      push edx

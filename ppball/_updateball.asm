@@ -14,7 +14,8 @@ UpdateBall proc,
     p1Y: dword,
     p2X: dword,
     p2Y: dword,
-	paddleHeight: dword
+	paddleHeight: dword,
+	RESET_BALL_RATE: dword
 	
 
 	pushad
@@ -42,7 +43,7 @@ Reset:
 	add eax, 10
 	mov ebx, p1X
 	add ebx, 40
-	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise
+	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise, RESET_BALL_RATE
 	jmp ContinueN
 	
 BangTest:
