@@ -9,9 +9,7 @@ ResetBall proc,
 	xRun: ptr dword,
 	yRise: ptr dword
 
-	; save the register states from before the function call
-	pushad
-	
+	; 存取前一刻狀態(往下就往下開始)
 	mov eax, Ball_X
 	mov ebx, newBall_X
 	mov [eax], ebx
