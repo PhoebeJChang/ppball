@@ -9,7 +9,7 @@ ReadKeyBoard proc,
 	p1Y: PTR dword,						; y-coord
 	p2X: PTR dword,						; x-coord
 	p2Y: PTR dword,						; y-coord
-	paddleHeight: dword,                ;5d
+	paddleHeight: dword,
 	playTopEdge: dword,
 	playLowEdge: dword
     
@@ -47,7 +47,8 @@ MoveUpP1:
      call Gotoxy
      mov eax, 0                              ; black
      call SetTextColor
-     mWriteString OFFSET space               ; clear
+     mov edx, OFFSET space
+     call WriteString                        ; clear
 
      ;向上移動時，除了要擦去面，也要新增上方"*"
      mov eax, p1X
@@ -58,13 +59,14 @@ MoveUpP1:
      call Gotoxy
      mov eax, color                   ;紅色板板~~
      call SetTextColor
-     mWriteString OFFSET space               ; draw
+     mov edx, OFFSET space
+     call WriteString                        ; draw
 
      sub [ebx], dword PTR 1                  ;y座標-1(才是正確座標底)
      jmp continueN
 
 MoveDownP1:
-    mov ebx, p1Y
+     mov ebx, p1Y
 	mov eax, [ebx]
     inc eax
 	cmp eax, playLowEdge
@@ -81,7 +83,8 @@ MoveDownP1:
      call Gotoxy
      mov eax, 0                              ; bg_color = black
      call SetTextColor                       ; set color to black
-     mWriteString OFFSET space                         ; clear bottom line
+     mov edx, OFFSET space
+     call WriteString                        ; clear bottom line
 
      ; moved up, create lower line.
      add [ebx], dword PTR 1                  ; change actual coordinate in main

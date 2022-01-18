@@ -42,7 +42,7 @@ Reset:
 	add eax, 10
 	mov ebx, p1X
 	add ebx, 40
-	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise		;呼叫球球重設
+	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise
 	jmp ContinueN
 	
 BangTest:
