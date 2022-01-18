@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/19/22 00:27:52
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/19/22 02:22:09
 ppball.asm						     Page 1 - 1
 
 
@@ -96,9 +96,8 @@ ppball.asm						     Page 1 - 1
 			      C      timedu: dword
 			      C 
 			      C 
-			      C 
 			      C NewBallTime proto,
-			      C 	timedu: ptr dword
+			      C 	revive: dword
 			      C 
 
 				; 框架大小和顏色宣告
@@ -117,7 +116,7 @@ ppball.asm						     Page 1 - 1
  = 000000E0			BALL_COLOR equ black+(yellow * 16)
 
  = 00000064			FRAME_RATE equ 100d                          ;球跑的速度
- = 000007D0			RESET_BALL_RATE equ 2000d                        ;球reset 冷卻時間
+ = 000005DC			RESET_BALL_RATE equ 1500d                    ;球reset 冷卻時間
 
 
  00000000			.data
@@ -173,19 +172,18 @@ ppball.asm						     Page 1 - 1
 				     invoke ShowFirstTwoPaddles, PADDLE_COLOR, PADDLE_COLOR_TWO, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr spacePaddle
 					 invoke UpdateBall, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
 				                        BOARD_BETWEEN, player1X, player1Y, player2X, player2Y, paddleHeight, RESET_BALL_RATE
- 000000A5  41			     inc ecx ; increment ecx to keep the loop going...when the ball goes out of bounds, set ecx to 0 so the inner loop can finish
+				     
 				     invoke SpeedOfBall, FRAME_RATE
 
-				     ; check for movement and redraw paddle accordingly
 				     invoke ReadKeyBoard, PADDLE_COLOR, PADDLE_COLOR_TWO, addr player1x, addr player1Y, addr player2X, addr player2y, paddleHeight, 
 				                            playTopEdge, playLowEdge
- 000000E2  E9 FFFFFF31			jmp ppballMain
+ 000000E1  E9 FFFFFF32			jmp ppballMain
 					
 					
 				     exit
- 000000EE			main endp
+ 000000ED			main endp
 				end main
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/19/22 00:27:52
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/19/22 02:22:09
 ppball.asm						     Symbols 2 - 1
 
 
@@ -298,7 +296,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000034 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000EE Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000ED Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -414,7 +412,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000EE Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000ED Public STDCALL
   Menu . . . . . . . . . . . . .	L Near	 00000005 _TEXT	
   stop . . . . . . . . . . . . .	L Near	 0000000E _TEXT	
   ppballMain . . . . . . . . . .	L Near	 00000018 _TEXT	
@@ -556,7 +554,7 @@ PADDLE_COLOR . . . . . . . . . .	Number	 000000B1h
 PLAY_L_EDGE_OFFSET . . . . . . .	Number	 00000014h   
 PLAY_T_EDGE_OFFSET . . . . . . .	Number	 00000005h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
-RESET_BALL_RATE  . . . . . . . .	Number	 000007D0h   
+RESET_BALL_RATE  . . . . . . . .	Number	 000005DCh   
 RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
 RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
 ReadConsoleInput . . . . . . . .	Text   	 ReadConsoleInputA

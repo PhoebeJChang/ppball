@@ -71,6 +71,5 @@ SpeedOfBall proto,
      timedu: dword
 
 
-
 NewBallTime proto,
-	timedu: ptr dword
+	revive: dword

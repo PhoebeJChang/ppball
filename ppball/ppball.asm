@@ -72,10 +72,9 @@ ppballMain:
      invoke ShowFirstTwoPaddles, PADDLE_COLOR, PADDLE_COLOR_TWO, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr spacePaddle
 	 invoke UpdateBall, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
                         BOARD_BETWEEN, player1X, player1Y, player2X, player2Y, paddleHeight, RESET_BALL_RATE
-     inc ecx ; increment ecx to keep the loop going...when the ball goes out of bounds, set ecx to 0 so the inner loop can finish
+     
      invoke SpeedOfBall, FRAME_RATE
 
-     ; check for movement and redraw paddle accordingly
      invoke ReadKeyBoard, PADDLE_COLOR, PADDLE_COLOR_TWO, addr player1x, addr player1Y, addr player2X, addr player2y, paddleHeight, 
                             playTopEdge, playLowEdge
 	jmp ppballMain

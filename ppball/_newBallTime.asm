@@ -4,13 +4,11 @@ include ppball.inc
 
 .code 
 NewBallTime PROC,
-	timedu: dword 
-
-	; timedu - the length of time to SpeedOfBall in milliseconds
+	revive: dword 
 
     pushad		;save general-purpose register
 
-	mov eax, timedu
+	mov eax, revive
 	call Delay
 
     popad		;restore
