@@ -13,52 +13,56 @@ DrawFrame proc,
 	
 
 	pushad
-
+	;上面小小字
 	mGotoxy 55,4
 	mov eax, red+(black*16)
 	call SetTextColor
 	mWriteString OFFSET ppballTitle
 
-	mov eax, color
+	mov eax, color		;灰色
 	call SetTextColor
-	; place the cursor at the top left edge of the board
-    mov eax, playTopEdgeOffset
-    mov ebx, playLeftEdgeOffset
-	mov dh, al
-	mov dl, bl
+
+	;定下border 左上座標(20,5)
+    mov ebx, playLeftEdgeOffset		;20d    
+	mov eax, playTopEdgeOffset		;5d
+	mov dl, bl		;column X座標
+	mov dh, al		;row Y座標
 	call Gotoxy
 
 	mov edx, space
-	mov ecx, 2
-L0: push ecx
-	mov ecx, boardColumnLength
-L1: push ecx
-	mov ecx, boardRowLength
-L2: call WriteString	
-	loop L2
-	pop ecx
-	loop L1
-	pop ecx
+	mov ecx, 2			;UpDownBoards loop跑兩次因為有上下兩個
+UpDownBoards: 
+	push ecx			;ecx = 2 
+	mov ecx, boardColumnLength		;ecx = 1 (boardColumnLength)
 
-    push eax
-    push edx
-    add eax, boardsinBetween			; 
+	ColumnOfBoard: 
+		push ecx	;ecx = 1
+		mov ecx, boardRowLength			;ecx = 80 (boardRowLength)
+
+		;厚度為一的board畫80次
+		DrawTheBoard: 
+			call WriteString	
+		loop DrawTheBoard
+
+		pop ecx		;ecx = 1
+	loop ColumnOfBoard		;跑一次
+
+	pop ecx			;ecx = 2
+
+    push eax		;5d
+    push edx		;儲存edx
+
+    add eax, boardsinBetween			; 兩個board間距25d(5+25=30)
     mov dh, al
 	mov dl, bl
 	call Gotoxy
-    pop edx
+    pop edx			;恢復
     pop eax
 
-	loop L0
+	loop UpDownBoards
 
 	
-	mov eax, 0
-	call SetTextColor
 
-    mov edx, 0
-    call Gotoxy
-	
-	; and done
 	popad
 	ret
 DrawFrame endp

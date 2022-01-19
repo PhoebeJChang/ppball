@@ -78,7 +78,7 @@ NotTouchingBottom:
 NotTouchingTop:
 	mov eax, p2X
 	mov ebx, eax
-	dec ebx
+	sub ebx,3
 	mov eax, [Ball_X]
 	cmp [eax], ebx
 	jb NotTouchingRightPaddle
