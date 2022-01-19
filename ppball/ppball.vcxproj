@@ -155,7 +155,7 @@
     <MASM Include="_drawframe.asm" />
     <MASM Include="_ShowFirstTwoPaddles.asm" />
     <MASM Include="_resetball.asm" />
-    <MASM Include="_updateball.asm" />
+    <MASM Include="_ball.asm" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ppball.inc" />

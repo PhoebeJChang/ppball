@@ -33,7 +33,7 @@
     <MASM Include="_resetball.asm">
       <Filter>Header Files</Filter>
     </MASM>
-    <MASM Include="_updateball.asm">
+    <MASM Include="_ball.asm">
       <Filter>Header Files</Filter>
     </MASM>
     <MASM Include="_Menu.asm">

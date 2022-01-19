@@ -1,7 +1,7 @@
 include ppball.inc
 
 .code
-UpdateBall proc,
+Ball proc,
 	Ball_X: ptr dword,			;x coordinate of the ball 
 	Ball_Y: ptr dword,			;y coordinate of the ball
     color: dword,				;BALL_COLOR : black+(yellow * 16)
@@ -208,7 +208,7 @@ ContinueN:
 	popad
 	ret
 
-UpdateBall endp
+Ball endp
 end
 	
 	

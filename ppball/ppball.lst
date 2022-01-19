@@ -1,5 +1,5 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/20/22 00:14:47
-_drawframe.asm						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/20/22 05:46:40
+ppball.asm						     Page 1 - 1
 
 
 				include ppball.inc
@@ -37,19 +37,24 @@ _drawframe.asm						     Page 1 - 1
 			      C 	p1Y: PTR dword,						; 玩家一 y座標
 			      C 	p2X: PTR dword,						; 玩家二 x座標
 			      C 	p2Y: PTR dword,						; 玩家二 y座標
-			      C 	paddleHeight: dword,
+			      C 	paddleHeight: dword,				;5
 			      C 	playTopEdge: dword,
-			      C 	playLowEdge: dword
+			      C 	playLowEdge: dword,
+			      C 	spaceWithStar: ptr byte				;"*"
 			      C 
 			      C ShowFirstTwoPaddles proto,
 			      C     color: dword,
 			      C 	color2: dword,
+			      C 	blackX1: dword,						;PLAY_BLACK_X1
+			      C 	blackY1: dword,						;PLAY_BLACK_Y1
+			      C 	blackX2: dword,						;PLAY_BLACK_X2
+			      C 	blackY2: dword,						;PLAY_BLACK_Y2
 			      C 	p1X: PTR dword,						; 玩家一 x座標
 			      C 	p1Y: PTR dword,						; 玩家一 y座標
 			      C 	p2X: PTR dword,						; 玩家二 x座標
 			      C 	p2Y: PTR dword,						; 玩家二 y座標
 			      C 	paddleHeight: dword,                ;paddle 高度
-			      C     space: ptr byte
+			      C     spaceWithStar: ptr byte				;"*"
 			      C 
 			      C DrawFrame proto,
 			      C     color: dword,						;UP_DOWN_B_COLOR 設light gray
@@ -67,7 +72,7 @@ _drawframe.asm						     Page 1 - 1
 			      C      xRun: ptr dword,
 			      C 	yRise: ptr dword
 			      C 
-			      C  UpdateBall proto,
+			      C  Ball proto,
 			      C     Ball_X: ptr dword,			;球X座標
 			      C     Ball_Y: ptr dword,			;球Y座標
 			      C     color: dword,				;BALL_COLOR
@@ -99,90 +104,107 @@ _drawframe.asm						     Page 1 - 1
 			      C NewBallTime proto,
 			      C 	revive: dword
 			      C 
+
+				; 框架大小和顏色宣告
+ = 00000005			PLAY_T_EDGE_OFFSET equ 5d
+ = 00000014			PLAY_L_EDGE_OFFSET equ 20d
+ = 00000050			BOARD_R_LENGTH equ 80d                      ;長row
+ = 00000001			BOARD_C_LENGTH equ 1d                       ;寬cloumn
+ = 00000019			BOARD_BETWEEN equ 25d                       ;板子間距離
+
+				;新增左右兩側看不到的黑色boards
+ = 0000000E			PLAY_BLACK_X1 equ 14d                  
+ = 00000004			PLAY_BLACK_Y1 equ 4d
+ = 0000006A			PLAY_BLACK_X2 equ 106d                  
+ = 00000004			PLAY_BLACK_Y2 equ 4d
+
+ = 0000003E			MENU_PPBALL_COLOR equ yellow + (cyan*16)         ;menu PPBALL
+ = 0000000F			MENU_TEXT_COLOR equ white + (black*16)
+ = 00000070			UP_DOWN_B_COLOR equ (lightGray * 16)             ;上下板子顏色
+ = 000000B1			PADDLE_COLOR equ blue+(lightCyan * 16)           ;左paddle color
+ = 000000CE			PADDLE_COLOR_TWO equ yellow+(lightRed*16)        ;右paddle color
+ = 000000E0			BALL_COLOR equ black+(yellow * 16)
+
+ = 00000064			FRAME_RATE equ 100d                          ;球跑的速度
+ = 000005DC			RESET_BALL_RATE equ 1500d                    ;球reset 冷卻時間
+
+
  00000000			.data
- 00000000 20 48 6F 70 65		ppballTitle byte " Hope You Enjoy The Game !! ",0
-	   20 59 6F 75 20
-	   45 6E 6A 6F 79
-	   20 54 68 65 20
-	   47 61 6D 65 20
-	   21 21 20 00
+				;ppballHeight1 dword 6
+				;ppballHeight2 dword 2
+
+
+				; for passing into prototypes
+ 00000000 00000005		playTopEdge dword (PLAY_T_EDGE_OFFSET)
+ 00000004 0000001E		playLowEdge dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
+
+				; ball and paddle tracking
+ 00000008 00000032		Ball_X dword PLAY_L_EDGE_OFFSET + 30
+ 0000000C 00000014		Ball_Y dword PLAY_T_EDGE_OFFSET + 15
+ 00000010 00000002		xRun dword 2              ;
+ 00000014 00000001		yRise dword 1
+
+				;paddle 起始座標
+				;左側player1
+ 00000018 00000014		p1X dword (PLAY_L_EDGE_OFFSET)                 ;設定p1 paddle 位置在左側邊邊
+ 0000001C 00000013		p1Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
+
+				;右側player2
+ 00000020 00000063		p2X dword (PLAY_L_EDGE_OFFSET + BOARD_R_LENGTH - 1)
+ 00000024 00000013		p2Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
+
+ 00000028 00000005		paddleHeight dword 5d       ;paddle長
+
+				; 填滿東東String
+ 0000002C 20 00			space byte " ", 0
+ 0000002E 20 20 00		space2 byte "  ", 0
+ 00000031 2A 00			spacePaddle byte "*", 0
+ 00000033 20 20			buffer byte "  "            ;球球實心笑臉
+
+				; gui information 玩家計分
+				;p1scoreString byte "Player 1 score:", 0
+				;p2scoreString byte "Player 2 score:", 0
+				;p1score dword 0
+				;p2score dword 0
+
  00000000			.code
- 00000000			DrawFrame proc,
-				    color: dword,				;灰
-					playTopEdgeOffset: dword,
-					playLeftEdgeOffset: dword,
-				    boardRowLength: dword,
-					boardsinBetween: dword,
-					boardColumnLength: dword,
-					space: ptr byte
+ 00000000			main proc
+ 00000000  E8 00000000 E	    call clrscr
+
+ 00000005			Menu:
+				    invoke MenuPage, MENU_PPBALL_COLOR, MENU_TEXT_COLOR
+
+
+ 0000000E			stop:
+ 0000000E  E8 00000000 E	    call ReadChar
+ 00000013  E8 00000000 E	    call clrscr
+
+ 00000018			ppballMain:
+				     
+				     ;上下板子
+				     invoke DrawFrame, UP_DOWN_B_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
+				     
+				     ;玩家paddle初始和移動
+				     invoke ShowFirstTwoPaddles, PADDLE_COLOR, PADDLE_COLOR_TWO, PLAY_BLACK_X1, PLAY_BLACK_Y1, PLAY_BLACK_X2, PLAY_BLACK_Y2, 
+				                                 addr p1X, addr p1Y, addr p2X, addr p2Y, addr paddleHeight, addr spacePaddle
+					 invoke ReadKeyBoard, PADDLE_COLOR, PADDLE_COLOR_TWO, addr p1X, addr p1Y, addr p2X, addr p2Y, 
+				                          paddleHeight, playTopEdge, playLowEdge, addr spacePaddle
+				     
+				     ;球的
+				     invoke Ball, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
+				                        BOARD_BETWEEN, p1X, p1Y, p2X, p2Y, paddleHeight, RESET_BALL_RATE
+				     
+				     invoke SpeedOfBall, FRAME_RATE
+
+				     
+ 000000EE  E9 FFFFFF25			jmp ppballMain
 					
- 00000003  60				pushad
-					;上面小小字
-					mGotoxy 45,3
- 00000004  52		     1		push edx
- 00000005  B6 03	     1		mov  dh,3
- 00000007  B2 2D	     1		mov  dl,45
- 00000009  E8 00000000 E     1		call Gotoxy
- 0000000E  5A		     1		pop  edx
- 0000000F  B8 000000B0			mov eax, black+(lightCyan*16)
- 00000014  E8 00000000 E		call SetTextColor
-					mWriteString OFFSET ppballTitle
- 00000019  52		     1		push edx
- 0000001A  BA 00000000 R     1		mov  edx,OFFSET OFFSET ppballTitle
- 0000001F  E8 00000000 E     1		call WriteString
- 00000024  5A		     1		pop  edx
-
- 00000025  8B 45 08			mov eax, color		;灰色
- 00000028  E8 00000000 E		call SetTextColor
-
-					;定下border 左上座標(20,5)
- 0000002D  8B 5D 10		    mov ebx, playLeftEdgeOffset		;20d    
- 00000030  8B 45 0C			mov eax, playTopEdgeOffset		;5d
- 00000033  8A D3			mov dl, bl		;column X座標
- 00000035  8A F0			mov dh, al		;row Y座標
- 00000037  E8 00000000 E		call Gotoxy
-
- 0000003C  8B 55 20			mov edx, space
- 0000003F  B9 00000002			mov ecx, 2			;UpDownBoards loop跑兩次因為有上下兩個
- 00000044			UpDownBoards: 
- 00000044  51				push ecx			;ecx = 2 
- 00000045  8B 4D 1C			mov ecx, boardColumnLength		;ecx = 1 (boardColumnLength)
-
- 00000048				ColumnOfBoard: 
- 00000048  51					push ecx	;ecx = 1
- 00000049  8B 4D 14				mov ecx, boardRowLength			;ecx = 80 (boardRowLength)
-
-						;厚度為一的board畫80次
- 0000004C					DrawTheBoard: 
- 0000004C  E8 00000000 E				call WriteString	
- 00000051  E2 F9				loop DrawTheBoard
-
- 00000053  59					pop ecx		;ecx = 1
- 00000054  E2 F2			loop ColumnOfBoard		;跑一次
-
- 00000056  59				pop ecx			;ecx = 2
-
- 00000057  50			    push eax		;5d
- 00000058  52			    push edx		;儲存edx
-
- 00000059  03 45 18		    add eax, boardsinBetween			; 兩個board間距25d(5+25=30)
- 0000005C  8A F0		    mov dh, al
- 0000005E  8A D3			mov dl, bl
- 00000060  E8 00000000 E		call Gotoxy
- 00000065  5A			    pop edx			;恢復
- 00000066  58			    pop eax
-
- 00000067  E2 DB			loop UpDownBoards
-
 					
- 00000069  61				popad
-					ret
- 0000006E			DrawFrame endp
-				end
-					
-	
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/20/22 00:14:47
-_drawframe.asm						     Symbols 2 - 1
+				     exit
+ 000000FA			main endp
+				end main
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/20/22 05:46:40
+ppball.asm						     Symbols 2 - 1
 
 
 
@@ -293,14 +315,15 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000001D Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000006E Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000035 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000FA Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
+Ball . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -309,17 +332,7 @@ CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DrawBall . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawFrame  . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000006E Public STDCALL
-  color  . . . . . . . . . . . .	DWord	 bp + 00000008
-  playTopEdgeOffset  . . . . . .	DWord	 bp + 0000000C
-  playLeftEdgeOffset . . . . . .	DWord	 bp + 00000010
-  boardRowLength . . . . . . . .	DWord	 bp + 00000014
-  boardsinBetween  . . . . . . .	DWord	 bp + 00000018
-  boardColumnLength  . . . . . .	DWord	 bp + 0000001C
-  space  . . . . . . . . . . . .	DWord	 bp + 00000020
-  UpDownBoards . . . . . . . . .	L Near	 00000044 _TEXT	
-  ColumnOfBoard  . . . . . . . .	L Near	 00000048 _TEXT	
-  DrawTheBoard . . . . . . . . .	L Near	 0000004C _TEXT	
+DrawFrame  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -401,7 +414,6 @@ Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-UpdateBall . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -420,6 +432,10 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000FA Public STDCALL
+  Menu . . . . . . . . . . . . .	L Near	 00000005 _TEXT	
+  stop . . . . . . . . . . . . .	L Near	 0000000E _TEXT	
+  ppballMain . . . . . . . . . .	L Near	 00000018 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -439,6 +455,12 @@ Symbols:
 @fardata . . . . . . . . . . . .	Text   	 FLAT
 @stack . . . . . . . . . . . . .	Text   	 FLAT
 ALT_MASK . . . . . . . . . . . .	Number	 00000003h   
+BALL_COLOR . . . . . . . . . . .	Number	 000000E0h   
+BOARD_BETWEEN  . . . . . . . . .	Number	 00000019h   
+BOARD_C_LENGTH . . . . . . . . .	Number	 00000001h   
+BOARD_R_LENGTH . . . . . . . . .	Number	 00000050h   
+Ball_X . . . . . . . . . . . . .	DWord	 00000008 _DATA	
+Ball_Y . . . . . . . . . . . . .	DWord	 0000000C _DATA	
 CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h   
 CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
 CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
@@ -481,6 +503,7 @@ FILE_WRITE_DATA  . . . . . . . .	Number	 00000002h
 FOCUS_EVENT  . . . . . . . . . .	Number	 00000010h   
 FORMAT_MESSAGE_ALLOCATE_BUFFER .	Number	 00000100h   
 FORMAT_MESSAGE_FROM_SYSTEM . . .	Number	 00001000h   
+FRAME_RATE . . . . . . . . . . .	Number	 00000064h   
 FormatMessage  . . . . . . . . .	Text   	 FormatMessageA
 GENERIC_ALL  . . . . . . . . . .	Number	 10000000h   
 GENERIC_EXECUTE  . . . . . . . .	Number	 20000000h   
@@ -536,13 +559,24 @@ MB_USERICON  . . . . . . . . . .	Number	 00000080h
 MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h   
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
+MENU_PPBALL_COLOR  . . . . . . .	Number	 0000003Eh   
+MENU_TEXT_COLOR  . . . . . . . .	Number	 0000000Fh   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
 OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
 OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
+PADDLE_COLOR_TWO . . . . . . . .	Number	 000000CEh   
+PADDLE_COLOR . . . . . . . . . .	Number	 000000B1h   
+PLAY_BLACK_X1  . . . . . . . . .	Number	 0000000Eh   
+PLAY_BLACK_X2  . . . . . . . . .	Number	 0000006Ah   
+PLAY_BLACK_Y1  . . . . . . . . .	Number	 00000004h   
+PLAY_BLACK_Y2  . . . . . . . . .	Number	 00000004h   
+PLAY_L_EDGE_OFFSET . . . . . . .	Number	 00000014h   
+PLAY_T_EDGE_OFFSET . . . . . . .	Number	 00000005h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
+RESET_BALL_RATE  . . . . . . . .	Number	 000005DCh   
 RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
 RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
 ReadConsoleInput . . . . . . . .	Text   	 ReadConsoleInputA
@@ -557,6 +591,7 @@ SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
 TAB  . . . . . . . . . . . . . .	Number	 00000009h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
+UP_DOWN_B_COLOR  . . . . . . . .	Number	 00000070h   
 VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
 VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
 VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
@@ -641,6 +676,7 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+buffer . . . . . . . . . . . . .	Byte	 00000033 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -652,10 +688,21 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-ppballTitle  . . . . . . . . . .	Byte	 00000000 _DATA	
+p1X  . . . . . . . . . . . . . .	DWord	 00000018 _DATA	
+p1Y  . . . . . . . . . . . . . .	DWord	 0000001C _DATA	
+p2X  . . . . . . . . . . . . . .	DWord	 00000020 _DATA	
+p2Y  . . . . . . . . . . . . . .	DWord	 00000024 _DATA	
+paddleHeight . . . . . . . . . .	DWord	 00000028 _DATA	
+playLowEdge  . . . . . . . . . .	DWord	 00000004 _DATA	
+playTopEdge  . . . . . . . . . .	DWord	 00000000 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+space2 . . . . . . . . . . . . .	Byte	 0000002E _DATA	
+spacePaddle  . . . . . . . . . .	Byte	 00000031 _DATA	
+space  . . . . . . . . . . . . .	Byte	 0000002C _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
+xRun . . . . . . . . . . . . . .	DWord	 00000010 _DATA	
+yRise  . . . . . . . . . . . . .	DWord	 00000014 _DATA	
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings

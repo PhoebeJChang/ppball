@@ -12,19 +12,24 @@ ReadKeyBoard proto,
 	p1Y: PTR dword,						; 玩家一 y座標
 	p2X: PTR dword,						; 玩家二 x座標
 	p2Y: PTR dword,						; 玩家二 y座標
-	paddleHeight: dword,
+	paddleHeight: dword,				;5
 	playTopEdge: dword,
-	playLowEdge: dword
+	playLowEdge: dword,
+	spaceWithStar: ptr byte				;"*"
 
 ShowFirstTwoPaddles proto,
     color: dword,
 	color2: dword,
+	blackX1: dword,						;PLAY_BLACK_X1
+	blackY1: dword,						;PLAY_BLACK_Y1
+	blackX2: dword,						;PLAY_BLACK_X2
+	blackY2: dword,						;PLAY_BLACK_Y2
 	p1X: PTR dword,						; 玩家一 x座標
 	p1Y: PTR dword,						; 玩家一 y座標
 	p2X: PTR dword,						; 玩家二 x座標
 	p2Y: PTR dword,						; 玩家二 y座標
 	paddleHeight: dword,                ;paddle 高度
-    space: ptr byte
+    spaceWithStar: ptr byte				;"*"
 
 DrawFrame proto,
     color: dword,						;UP_DOWN_B_COLOR 設light gray
@@ -42,7 +47,7 @@ DrawBall proto,
      xRun: ptr dword,
 	yRise: ptr dword
 
- UpdateBall proto,
+ Ball proto,
     Ball_X: ptr dword,			;球X座標
     Ball_Y: ptr dword,			;球Y座標
     color: dword,				;BALL_COLOR

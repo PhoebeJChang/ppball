@@ -1,18 +1,17 @@
 include ppball.inc
-.data
-space byte "*", 0                       ;用*填滿
 
 .code 
 ReadKeyBoard proc,
      color: dword,
     color2: dword,
-	p1X: PTR dword,						; x-coord
-	p1Y: PTR dword,						; y-coord
-	p2X: PTR dword,						; x-coord
-	p2Y: PTR dword,						; y-coord
-	paddleHeight: dword,
-	playTopEdge: dword,
-	playLowEdge: dword
+	p1X: PTR dword,						; 玩家一 x座標
+	p1Y: PTR dword,						; 玩家一 y座標
+	p2X: PTR dword,						; 玩家二 x座標
+	p2Y: PTR dword,						; 玩家二 y座標
+	paddleHeight: dword,                ;5
+	playTopEdge: dword,                 ;最上座標
+	playLowEdge: dword,                 ;最下座標
+    spaceWithStar: ptr byte				;"*"
     
     pushad
 	
@@ -48,7 +47,7 @@ MoveUpP1:
      call Gotoxy
      mov eax, 0                              ; black
      call SetTextColor
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; clear
 
      ;向上移動時，除了要擦去面，也要新增上方"*"
@@ -60,7 +59,7 @@ MoveUpP1:
      call Gotoxy
      mov eax, color                   ;紅色板板~~
      call SetTextColor
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; draw
 
      sub [ebx], dword PTR 1                  ;y座標-1(才是正確座標底)
@@ -84,7 +83,7 @@ MoveDownP1:
      call Gotoxy
      mov eax, 0                              ; bg_color = black
      call SetTextColor                       ; set color to black
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; clear bottom line
 
      ; moved up, create lower line.
@@ -97,7 +96,7 @@ MoveDownP1:
      mov eax, color                   ; bg_color = color
      call SetTextColor
 
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; create bottom line
 
      jmp continueN
@@ -118,7 +117,7 @@ MoveUpP2:                                ; eax = p2Y
      call Gotoxy
      mov eax, 0                              ; bg_color = black
      call SetTextColor
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; clear bottom line
 
           ; moved up, create upper line.
@@ -130,7 +129,7 @@ MoveUpP2:                                ; eax = p2Y
      call Gotoxy
      mov eax, color2                    ; bg_color = black
      call SetTextColor
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; clear bottom line
 
      sub [ebx], dword PTR 1                  ; change actual coordinate in main
@@ -154,7 +153,7 @@ MoveDownP2:
      call Gotoxy
      mov eax, 0                              ; bg_color = black
      call SetTextColor                       ; set color to black
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; clear bottom line
 
           ; moved up, create lower line.
@@ -168,7 +167,7 @@ MoveDownP2:
      mov eax, color2                    ; bg_color = color
      call SetTextColor
 
-     mov edx, OFFSET space
+     mov edx, spaceWithStar
      call WriteString                        ; create bottom line
 
      jmp continueN
