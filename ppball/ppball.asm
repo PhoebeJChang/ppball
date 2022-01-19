@@ -10,7 +10,7 @@ BOARD_BETWEEN equ 25d                       ;板子間距離
 MENU_PPBALL_COLOR equ yellow + (cyan*16)         ;menu PPBALL
 MENU_TEXT_COLOR equ white + (black*16)
 GUI_TEXT_COLOR equ (white)
-GUI_COLOR equ lightMagenta+(lightGray * 16)      ;上下板子顏色
+UP_DOWN_B_COLOR equ lightMagenta+(lightGray * 16)      ;上下板子顏色
 PADDLE_COLOR equ blue+(lightCyan * 16)           ;左paddle color
 PADDLE_COLOR_TWO equ yellow+(lightRed*16)        ;右paddle color
 BALL_COLOR equ black+(yellow * 16)
@@ -68,7 +68,7 @@ stop:
 
 ppballMain:
      
-     invoke DrawFrame, GUI_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
+     invoke DrawFrame, UP_DOWN_B_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
      invoke ShowFirstTwoPaddles, PADDLE_COLOR, PADDLE_COLOR_TWO, addr player1X, addr player1Y, addr player2X, addr player2Y, addr paddleHeight, addr spacePaddle
 	 invoke UpdateBall, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
                         BOARD_BETWEEN, player1X, player1Y, player2X, player2Y, paddleHeight, RESET_BALL_RATE

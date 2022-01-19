@@ -1,9 +1,9 @@
 include ppball.inc
 .data
-	ppballTitle byte "PPBALL !!",0
+	ppballTitle byte " Hope You Enjoy The Game !! ",0
 .code
 DrawFrame proc,
-    color: dword,
+    color: dword,				;灰
 	playTopEdgeOffset: dword,
 	playLeftEdgeOffset: dword,
     boardRowLength: dword,
@@ -11,11 +11,10 @@ DrawFrame proc,
 	boardColumnLength: dword,
 	space: ptr byte
 	
-
 	pushad
 	;上面小小字
-	mGotoxy 55,4
-	mov eax, red+(black*16)
+	mGotoxy 45,3
+	mov eax, black+(lightCyan*16)
 	call SetTextColor
 	mWriteString OFFSET ppballTitle
 
@@ -53,8 +52,8 @@ UpDownBoards:
     push edx		;儲存edx
 
     add eax, boardsinBetween			; 兩個board間距25d(5+25=30)
-    mov dh, al
-	mov dl, bl
+    mov dl, bl		;X座標不變
+	mov dh, al
 	call Gotoxy
     pop edx			;恢復
     pop eax
@@ -62,7 +61,6 @@ UpDownBoards:
 	loop UpDownBoards
 
 	
-
 	popad
 	ret
 DrawFrame endp

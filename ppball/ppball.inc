@@ -27,8 +27,8 @@ ShowFirstTwoPaddles proto,
     space: ptr byte
 
 DrawFrame proto,
-    color: dword,						;GUI_COLOR
-    playTopEdgeOffset: dword,			;PLAY_T_EDGE_OFFSET
+    color: dword,						;UP_DOWN_B_COLOR ³]light gray
+    playTopEdgeOffset: dword,			;PLAY_T_EDGE_OFFSET 
 	playLeftEdgeOffset: dword,			;PLAY_L_EDGE_OFFSET
     boardRowLength: dword,				;BOARD_R_LENGTH
 	boardsinBetween: dword,				;BOARD_BETWEEN
