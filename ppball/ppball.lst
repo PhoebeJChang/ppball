@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 04:15:34
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 04:50:47
 _ReadKeyBoard.asm					     Page 1 - 1
 
 
@@ -141,7 +141,7 @@ _ReadKeyBoard.asm					     Page 1 - 1
  00000003  60			    pushad
 					
  00000004  E8 00000000 E	     call ReadKey
- 00000009  0F 84 000001AE	     je continueN
+ 00000009  0F 84 000001AB	     je continueN
 
  0000000F  3C 77		     cmp al, "w"
  00000011  74 1B		     je MoveUpP1                ;p1 paddle向上
@@ -149,11 +149,11 @@ _ReadKeyBoard.asm					     Page 1 - 1
  00000015  74 76		     je MoveDownP1              ;p2 paddle向下
 				     
  00000017  80 FC 48		     cmp ah, 48h                ;向上鍵
- 0000001A  0F 84 000000D0	     je MoveUpP2                ;p2 paddle向上
+ 0000001A  0F 84 000000CD	     je MoveUpP2                ;p2 paddle向上
  00000020  80 FC 50		     cmp ah, 50h                ;向下鍵
- 00000023  0F 84 00000123	     je MoveDownP2              ;p2 paddle向下
+ 00000023  0F 84 00000120	     je MoveDownP2              ;p2 paddle向下
 
- 00000029  E9 0000018F		     jmp continueN
+ 00000029  E9 0000018C		     jmp continueN
 
 				;藍色板板有MoveUpP1, MoveDownP1兩個label
  0000002E			MoveUpP1: 
@@ -163,7 +163,7 @@ _ReadKeyBoard.asm					     Page 1 - 1
  00000031  8B 03			mov eax, [ebx]
  00000033  2B 45 20			sub eax, [paddleHeight]				; y - height
  00000036  3B 45 24			cmp eax, playTopEdge                ;如果小於等於
- 00000039  0F 86 0000017E		jbe continueN                       ;跳continue, 忽略上鍵要求
+ 00000039  0F 86 0000017B		jbe continueN                       ;跳continue, 忽略上鍵要求
 
 				    ;往上移動時，覆蓋最下面的"*",抓當時的XY座標
 				    ;因為我們是由下往上畫，所以當時的座標會是最下方
@@ -191,7 +191,7 @@ _ReadKeyBoard.asm					     Page 1 - 1
 
 				     ;[ebx]開頭存著當時的y座標
  00000082  81 2B 00000001	     sub [ebx], dword PTR 1                  ;[ebx]-1 得新座標
- 00000088  E9 00000130		     jmp continueN
+ 00000088  E9 0000012D		     jmp continueN
 
  0000008D			MoveDownP1:
 				    ;當板子碰到下border，不給動(cont.)
@@ -200,7 +200,7 @@ _ReadKeyBoard.asm					     Page 1 - 1
  00000090  8B 03			 mov eax, [ebx]
  00000092  40			     inc eax                                ;p1Y + 1來和最底Y座標進行比較
  00000093  3B 45 28			 cmp eax, playLowEdge                   ;如果Y座標大於等於Edge
- 00000096  0F 83 00000121		 jae continueN                          ;跳去continueN, 忽略下鍵要求
+ 00000096  0F 83 0000011E		 jae continueN                          ;跳去continueN, 忽略下鍵要求
 
 				     ;往下移動時，覆蓋最上面的"*",抓當時的XY座標
 				     ;因為我們是由下往上畫，所以當時的座標會是最下方
@@ -209,7 +209,7 @@ _ReadKeyBoard.asm					     Page 1 - 1
  000000A1  8B 45 14		     mov eax, p1Y
  000000A4  8A 30		     mov dh, byte PTR [eax]                  ; y 座標
  000000A6  2A 75 20		     sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
- 000000A9  80 C6 01		     add dh, byte PTR 1
+ 000000A9  80 C6 01		     add dh, byte PTR 1                      ;記得加一!!                      
  000000AC  E8 00000000 E	     call Gotoxy
  000000B1  B8 00000000		     mov eax, 0                              ; 塗上黑色
  000000B6  E8 00000000 E	     call SetTextColor                       
@@ -221,113 +221,113 @@ _ReadKeyBoard.asm					     Page 1 - 1
  000000C6  8A 10		     mov dl, byte PTR [eax]                  ; x 座標
  000000C8  8B 45 14		     mov eax, p1Y
  000000CB  8A 30		     mov dh, byte PTR [eax]                  ; y 座標
- 000000CD  80 C6 01		     add dh, byte PTR 1                      ;加一高度得最低點座標
- 000000D0  E8 00000000 E	     call Gotoxy
- 000000D5  8B 45 08		     mov eax, color                          ; 藍色板板
- 000000D8  E8 00000000 E	     call SetTextColor
- 000000DD  8B 55 2C		     mov edx, spaceWithStar
- 000000E0  E8 00000000 E	     call WriteString                        ; 畫上
+				     ;add dh, byte PTR 1                      ;加一高度得最低點座標
+ 000000CD  E8 00000000 E	     call Gotoxy
+ 000000D2  8B 45 08		     mov eax, color                          ; 藍色板板
+ 000000D5  E8 00000000 E	     call SetTextColor
+ 000000DA  8B 55 2C		     mov edx, spaceWithStar
+ 000000DD  E8 00000000 E	     call WriteString                        ; 畫上
 
- 000000E5  81 03 00000001	     add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
- 000000EB  E9 000000CD		     jmp continueN
+ 000000E2  81 03 00000001	     add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
+ 000000E8  E9 000000CD		     jmp continueN
 
 				;紅色板板有MoveUpP2, MoveDownP2兩個label
- 000000F0			MoveUpP2:
+ 000000ED			MoveUpP2:
 				    ;當板子碰到上border，不給動(cont.)
 				    ; eax = p2Y , [ebx] 存著當時的y座標!!!!
- 000000F0  8B 5D 1C		    mov ebx, p2Y
- 000000F3  8B 03			mov eax, [ebx]                      
- 000000F5  2B 45 20			sub eax, [paddleHeight]				     ; y - height
- 000000F8  3B 45 24			cmp eax, playTopEdge                     ;如果小於等於
- 000000FB  0F 86 000000BC		jbe continueN                            ;跳continue, 忽略上鍵要求
+ 000000ED  8B 5D 1C		    mov ebx, p2Y
+ 000000F0  8B 03			mov eax, [ebx]                      
+ 000000F2  2B 45 20			sub eax, [paddleHeight]				     ; y - height
+ 000000F5  3B 45 24			cmp eax, playTopEdge                     ;如果小於等於
+ 000000F8  0F 86 000000BC		jbe continueN                            ;跳continue, 忽略上鍵要求
 
 				    ;往上移動時，覆蓋最下面的"*",抓當時的XY座標
 				    ;因為我們是由下往上畫，所以當時的座標會是最下方
- 00000101  8B 45 18		    mov eax, p2X
- 00000104  8A 10		    mov dl, byte PTR [eax]                   ; x 座標
- 00000106  8B 45 1C		    mov eax, p2Y
- 00000109  8A 30		    mov dh, byte PTR [eax]                   ; y 座標
- 0000010B  E8 00000000 E	    call Gotoxy
- 00000110  B8 00000000		    mov eax, 0                               ; 塗上黑色
- 00000115  E8 00000000 E	    call SetTextColor
- 0000011A  8B 55 2C		    mov edx, spaceWithStar
- 0000011D  E8 00000000 E	    call WriteString                         ; 覆蓋
+ 000000FE  8B 45 18		    mov eax, p2X
+ 00000101  8A 10		    mov dl, byte PTR [eax]                   ; x 座標
+ 00000103  8B 45 1C		    mov eax, p2Y
+ 00000106  8A 30		    mov dh, byte PTR [eax]                   ; y 座標
+ 00000108  E8 00000000 E	    call Gotoxy
+ 0000010D  B8 00000000		    mov eax, 0                               ; 塗上黑色
+ 00000112  E8 00000000 E	    call SetTextColor
+ 00000117  8B 55 2C		    mov edx, spaceWithStar
+ 0000011A  E8 00000000 E	    call WriteString                         ; 覆蓋
 
 				    ;向上移動時，除了要擦去下面，也要新增上方"*"
- 00000122  8B 45 18		    mov eax, p2X
- 00000125  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
- 00000127  8B 45 1C		    mov eax, p2Y
- 0000012A  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
- 0000012C  2A 75 20		    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
- 0000012F  E8 00000000 E	    call Gotoxy
- 00000134  8B 45 0C		    mov eax, color2                         ; 紅色板板
- 00000137  E8 00000000 E	    call SetTextColor
- 0000013C  8B 55 2C		    mov edx, spaceWithStar
- 0000013F  E8 00000000 E	    call WriteString                        ; 補*
+ 0000011F  8B 45 18		    mov eax, p2X
+ 00000122  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
+ 00000124  8B 45 1C		    mov eax, p2Y
+ 00000127  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
+ 00000129  2A 75 20		    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+ 0000012C  E8 00000000 E	    call Gotoxy
+ 00000131  8B 45 0C		    mov eax, color2                         ; 紅色板板
+ 00000134  E8 00000000 E	    call SetTextColor
+ 00000139  8B 55 2C		    mov edx, spaceWithStar
+ 0000013C  E8 00000000 E	    call WriteString                        ; 補*
 
 				    ;[ebx]開頭存著當時的y座標
- 00000144  81 2B 00000001	    sub [ebx], dword PTR 1                  ;[ebx]-1 得新座標
- 0000014A  EB 71		    jmp continueN
+ 00000141  81 2B 00000001	    sub [ebx], dword PTR 1                  ;[ebx]-1 得新座標
+ 00000147  EB 71		    jmp continueN
 
- 0000014C			MoveDownP2:
+ 00000149			MoveDownP2:
 				    ;當板子碰到下border，不給動(cont.)
 				    ; eax = p1Y , [ebx] 也存著當時的y座標!!!!
- 0000014C  8B 5D 1C		    mov ebx, p2Y
- 0000014F  8B 03			mov eax, [ebx]
- 00000151  40			    inc eax                                 ;p2Y + 1來和最底Y座標進行比較
- 00000152  3B 45 28			cmp eax, playLowEdge                    ;如果Y座標大於等於Edge
- 00000155  73 66			jae continueN                           ;跳去continueN, 忽略下鍵要求
+ 00000149  8B 5D 1C		    mov ebx, p2Y
+ 0000014C  8B 03			mov eax, [ebx]
+ 0000014E  40			    inc eax                                 ;p2Y + 1來和最底Y座標進行比較
+ 0000014F  3B 45 28			cmp eax, playLowEdge                    ;如果Y座標大於等於Edge
+ 00000152  73 66			jae continueN                           ;跳去continueN, 忽略下鍵要求
 
 				    ;往下移動時，覆蓋最上面的"*",抓當時的XY座標
 				    ;因為我們是由下往上畫，所以當時的座標會是最下方
- 00000157  8B 45 18		    mov eax, p2X
- 0000015A  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
- 0000015C  8B 45 1C		    mov eax, p2Y
- 0000015F  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
- 00000161  2A 75 20		    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
- 00000164  80 C6 01		    add dh, byte PTR 1
- 00000167  E8 00000000 E	    call Gotoxy
- 0000016C  B8 00000000		    mov eax, 0                              ; 塗上黑色
- 00000171  E8 00000000 E	    call SetTextColor
- 00000176  8B 55 2C		    mov edx, spaceWithStar
- 00000179  E8 00000000 E	    call WriteString                        ; 補黑色*
+ 00000154  8B 45 18		    mov eax, p2X
+ 00000157  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
+ 00000159  8B 45 1C		    mov eax, p2Y
+ 0000015C  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
+ 0000015E  2A 75 20		    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+ 00000161  80 C6 01		    add dh, byte PTR 1
+ 00000164  E8 00000000 E	    call Gotoxy
+ 00000169  B8 00000000		    mov eax, 0                              ; 塗上黑色
+ 0000016E  E8 00000000 E	    call SetTextColor
+ 00000173  8B 55 2C		    mov edx, spaceWithStar
+ 00000176  E8 00000000 E	    call WriteString                        ; 補黑色*
 
 				    ;向下移動時，除了要擦去上面，也要新增下方"*"
- 0000017E  8B 45 18		    mov eax, p2X
- 00000181  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
- 00000183  8B 45 1C		    mov eax, p2Y
- 00000186  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
- 00000188  80 C6 01		    add dh, byte PTR 1                      ;加一高度得最低點座標
- 0000018B  E8 00000000 E	    call Gotoxy
- 00000190  8B 45 0C		    mov eax, color2                         ; 紅板板
- 00000193  E8 00000000 E	    call SetTextColor
- 00000198  8B 55 2C		    mov edx, spaceWithStar
- 0000019B  E8 00000000 E	    call WriteString                        ;補*
+ 0000017B  8B 45 18		    mov eax, p2X
+ 0000017E  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
+ 00000180  8B 45 1C		    mov eax, p2Y
+ 00000183  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
+ 00000185  80 C6 01		    add dh, byte PTR 1                      ;加一高度得最低點座標
+ 00000188  E8 00000000 E	    call Gotoxy
+ 0000018D  8B 45 0C		    mov eax, color2                         ; 紅板板
+ 00000190  E8 00000000 E	    call SetTextColor
+ 00000195  8B 55 2C		    mov edx, spaceWithStar
+ 00000198  E8 00000000 E	    call WriteString                        ;補*
 
- 000001A0  81 03 00000001	    add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
- 000001A6  EB 15		    jmp continueN
+ 0000019D  81 03 00000001	    add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
+ 000001A3  EB 15		    jmp continueN
 
 				; 提示操作
- 000001A8			Hint:
+ 000001A5			Hint:
 					INVOKE MessageBox, NULL, ADDR HintText,
 					  ADDR HintTitle, MB_OK
- 000001BB  EB 00		    jmp continueN
+ 000001B8  EB 00		    jmp continueN
 
- 000001BD			continueN:
+ 000001BA			continueN:
 				    
 				    mGotoxy 0,0         ;最終點設0,0
- 000001BD  52		     1		push edx
- 000001BE  B6 00	     1		mov  dh,0
- 000001C0  B2 00	     1		mov  dl,0
- 000001C2  E8 00000000 E     1		call Gotoxy
- 000001C7  5A		     1		pop  edx
- 000001C8  3C 68		    cmp al,"h"
- 000001CA  74 DC		    je Hint
- 000001CC  61			    popad
+ 000001BA  52		     1		push edx
+ 000001BB  B6 00	     1		mov  dh,0
+ 000001BD  B2 00	     1		mov  dl,0
+ 000001BF  E8 00000000 E     1		call Gotoxy
+ 000001C4  5A		     1		pop  edx
+ 000001C5  3C 68		    cmp al,"h"
+ 000001C7  74 DC		    je Hint
+ 000001C9  61			    popad
 					ret
- 000001D1			ReadKeyBoard endp
+ 000001CE			ReadKeyBoard endp
 				end
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 04:15:34
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 04:50:47
 _ReadKeyBoard.asm					     Symbols 2 - 1
 
 
@@ -440,7 +440,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000054 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000001D1 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000001CE Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -512,7 +512,7 @@ ReadFloat  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadFromFile . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadHex  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001D1 Public STDCALL
+ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001CE Public STDCALL
   color  . . . . . . . . . . . .	DWord	 bp + 00000008
   color2 . . . . . . . . . . . .	DWord	 bp + 0000000C
   p1X  . . . . . . . . . . . . .	DWord	 bp + 00000010
@@ -525,10 +525,10 @@ ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001D1 Public 
   spaceWithStar  . . . . . . . .	DWord	 bp + 0000002C
   MoveUpP1 . . . . . . . . . . .	L Near	 0000002E _TEXT	
   MoveDownP1 . . . . . . . . . .	L Near	 0000008D _TEXT	
-  MoveUpP2 . . . . . . . . . . .	L Near	 000000F0 _TEXT	
-  MoveDownP2 . . . . . . . . . .	L Near	 0000014C _TEXT	
-  Hint . . . . . . . . . . . . .	L Near	 000001A8 _TEXT	
-  continueN  . . . . . . . . . .	L Near	 000001BD _TEXT	
+  MoveUpP2 . . . . . . . . . . .	L Near	 000000ED _TEXT	
+  MoveDownP2 . . . . . . . . . .	L Near	 00000149 _TEXT	
+  Hint . . . . . . . . . . . . .	L Near	 000001A5 _TEXT	
+  continueN  . . . . . . . . . .	L Near	 000001BA _TEXT	
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL

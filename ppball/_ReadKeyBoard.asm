@@ -89,7 +89,7 @@ MoveDownP1:
      mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y 座標
      sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
-     add dh, byte PTR 1
+     add dh, byte PTR 1                      ;記得加一!!                      
      call Gotoxy
      mov eax, 0                              ; 塗上黑色
      call SetTextColor                       
