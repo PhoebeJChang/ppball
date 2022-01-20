@@ -1,5 +1,5 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/20/22 05:46:40
-ppball.asm						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 04:15:34
+_ReadKeyBoard.asm					     Page 1 - 1
 
 
 				include ppball.inc
@@ -104,107 +104,231 @@ ppball.asm						     Page 1 - 1
 			      C NewBallTime proto,
 			      C 	revive: dword
 			      C 
-
-				; 框架大小和顏色宣告
- = 00000005			PLAY_T_EDGE_OFFSET equ 5d
- = 00000014			PLAY_L_EDGE_OFFSET equ 20d
- = 00000050			BOARD_R_LENGTH equ 80d                      ;長row
- = 00000001			BOARD_C_LENGTH equ 1d                       ;寬cloumn
- = 00000019			BOARD_BETWEEN equ 25d                       ;板子間距離
-
-				;新增左右兩側看不到的黑色boards
- = 0000000E			PLAY_BLACK_X1 equ 14d                  
- = 00000004			PLAY_BLACK_Y1 equ 4d
- = 0000006A			PLAY_BLACK_X2 equ 106d                  
- = 00000004			PLAY_BLACK_Y2 equ 4d
-
- = 0000003E			MENU_PPBALL_COLOR equ yellow + (cyan*16)         ;menu PPBALL
- = 0000000F			MENU_TEXT_COLOR equ white + (black*16)
- = 00000070			UP_DOWN_B_COLOR equ (lightGray * 16)             ;上下板子顏色
- = 000000B1			PADDLE_COLOR equ blue+(lightCyan * 16)           ;左paddle color
- = 000000CE			PADDLE_COLOR_TWO equ yellow+(lightRed*16)        ;右paddle color
- = 000000E0			BALL_COLOR equ black+(yellow * 16)
-
- = 00000064			FRAME_RATE equ 100d                          ;球跑的速度
- = 000005DC			RESET_BALL_RATE equ 1500d                    ;球reset 冷卻時間
-
-
  00000000			.data
-				;ppballHeight1 dword 6
-				;ppballHeight2 dword 2
+				            
+ 00000000 B9 43 C0 B8 BE	HintTitle BYTE "遊戲操作方法",0
+	   DE A7 40 A4 E8
+	   AA 6B 00
+ 0000000D A5 AA B0 BC AA	HintText  BYTE "左側玩家操控WS鍵來移動Paddle；          "
+	   B1 AE 61 BE DE
+	   B1 B1 57 53 C1
+	   E4 A8 D3 B2 BE
+	   B0 CA 50 61 64
+	   64 6C 65 A1 46
+	   20 20 20 20 20
+	   20 20 20 20 20
+ 00000035  A5 6B B0 BC AA		       BYTE "右側玩家操控上下鍵來移動Paddle",0
+	   B1 AE 61 BE DE
+	   B1 B1 A4 57 A4
+	   55 C1 E4 A8 D3
+	   B2 BE B0 CA 50
+	   61 64 64 6C 65
+	   00
 
-
-				; for passing into prototypes
- 00000000 00000005		playTopEdge dword (PLAY_T_EDGE_OFFSET)
- 00000004 0000001E		playLowEdge dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
-
-				; ball and paddle tracking
- 00000008 00000032		Ball_X dword PLAY_L_EDGE_OFFSET + 30
- 0000000C 00000014		Ball_Y dword PLAY_T_EDGE_OFFSET + 15
- 00000010 00000002		xRun dword 2              ;
- 00000014 00000001		yRise dword 1
-
-				;paddle 起始座標
-				;左側player1
- 00000018 00000014		p1X dword (PLAY_L_EDGE_OFFSET)                 ;設定p1 paddle 位置在左側邊邊
- 0000001C 00000013		p1Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
-
-				;右側player2
- 00000020 00000063		p2X dword (PLAY_L_EDGE_OFFSET + BOARD_R_LENGTH - 1)
- 00000024 00000013		p2Y dword (PLAY_T_EDGE_OFFSET + (BOARD_BETWEEN / 2) + 2)
-
- 00000028 00000005		paddleHeight dword 5d       ;paddle長
-
-				; 填滿東東String
- 0000002C 20 00			space byte " ", 0
- 0000002E 20 20 00		space2 byte "  ", 0
- 00000031 2A 00			spacePaddle byte "*", 0
- 00000033 20 20			buffer byte "  "            ;球球實心笑臉
-
-				; gui information 玩家計分
-				;p1scoreString byte "Player 1 score:", 0
-				;p2scoreString byte "Player 2 score:", 0
-				;p1score dword 0
-				;p2score dword 0
-
- 00000000			.code
- 00000000			main proc
- 00000000  E8 00000000 E	    call clrscr
-
- 00000005			Menu:
-				    invoke MenuPage, MENU_PPBALL_COLOR, MENU_TEXT_COLOR
-
-
- 0000000E			stop:
- 0000000E  E8 00000000 E	    call ReadChar
- 00000013  E8 00000000 E	    call clrscr
-
- 00000018			ppballMain:
-				     
-				     ;上下板子
-				     invoke DrawFrame, UP_DOWN_B_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
-				     
-				     ;玩家paddle初始和移動
-				     invoke ShowFirstTwoPaddles, PADDLE_COLOR, PADDLE_COLOR_TWO, PLAY_BLACK_X1, PLAY_BLACK_Y1, PLAY_BLACK_X2, PLAY_BLACK_Y2, 
-				                                 addr p1X, addr p1Y, addr p2X, addr p2Y, addr paddleHeight, addr spacePaddle
-					 invoke ReadKeyBoard, PADDLE_COLOR, PADDLE_COLOR_TWO, addr p1X, addr p1Y, addr p2X, addr p2Y, 
-				                          paddleHeight, playTopEdge, playLowEdge, addr spacePaddle
-				     
-				     ;球的
-				     invoke Ball, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
-				                        BOARD_BETWEEN, p1X, p1Y, p2X, p2Y, paddleHeight, RESET_BALL_RATE
-				     
-				     invoke SpeedOfBall, FRAME_RATE
-
-				     
- 000000EE  E9 FFFFFF25			jmp ppballMain
+ 00000000			.code 
+ 00000000			ReadKeyBoard proc,
+				     color: dword,
+				    color2: dword,
+					p1X: PTR dword,						; 玩家一 x座標
+					p1Y: PTR dword,						; 玩家一 y座標
+					p2X: PTR dword,						; 玩家二 x座標
+					p2Y: PTR dword,						; 玩家二 y座標
+					paddleHeight: dword,                ;5
+					playTopEdge: dword,                 ;最上座標
+					playLowEdge: dword,                 ;最下座標
+				    spaceWithStar: ptr byte				;"*"
+				    
+ 00000003  60			    pushad
 					
-					
-				     exit
- 000000FA			main endp
-				end main
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/20/22 05:46:40
-ppball.asm						     Symbols 2 - 1
+ 00000004  E8 00000000 E	     call ReadKey
+ 00000009  0F 84 000001AE	     je continueN
+
+ 0000000F  3C 77		     cmp al, "w"
+ 00000011  74 1B		     je MoveUpP1                ;p1 paddle向上
+ 00000013  3C 73		     cmp al, "s"
+ 00000015  74 76		     je MoveDownP1              ;p2 paddle向下
+				     
+ 00000017  80 FC 48		     cmp ah, 48h                ;向上鍵
+ 0000001A  0F 84 000000D0	     je MoveUpP2                ;p2 paddle向上
+ 00000020  80 FC 50		     cmp ah, 50h                ;向下鍵
+ 00000023  0F 84 00000123	     je MoveDownP2              ;p2 paddle向下
+
+ 00000029  E9 0000018F		     jmp continueN
+
+				;藍色板板有MoveUpP1, MoveDownP1兩個label
+ 0000002E			MoveUpP1: 
+				    ;當板子碰到上border，不給動(cont.)
+				    ; eax = p1Y , [ebx] 存著當時的y座標!!!!
+ 0000002E  8B 5D 14		    mov ebx, p1Y
+ 00000031  8B 03			mov eax, [ebx]
+ 00000033  2B 45 20			sub eax, [paddleHeight]				; y - height
+ 00000036  3B 45 24			cmp eax, playTopEdge                ;如果小於等於
+ 00000039  0F 86 0000017E		jbe continueN                       ;跳continue, 忽略上鍵要求
+
+				    ;往上移動時，覆蓋最下面的"*",抓當時的XY座標
+				    ;因為我們是由下往上畫，所以當時的座標會是最下方
+ 0000003F  8B 45 10		     mov eax, p1X
+ 00000042  8A 10		     mov dl, byte PTR [eax]                  ; x 座標
+ 00000044  8B 45 14		     mov eax, p1Y
+ 00000047  8A 30		     mov dh, byte PTR [eax]                  ; y 座標
+ 00000049  E8 00000000 E	     call Gotoxy
+ 0000004E  B8 00000000		     mov eax, 0                              ; 塗上黑色
+ 00000053  E8 00000000 E	     call SetTextColor
+ 00000058  8B 55 2C		     mov edx, spaceWithStar
+ 0000005B  E8 00000000 E	     call WriteString                        ; 覆蓋
+
+				     ;向上移動時，除了要擦去下面，也要新增上方"*"
+ 00000060  8B 45 10		     mov eax, p1X
+ 00000063  8A 10		     mov dl, byte PTR [eax]                  ; x 座標
+ 00000065  8B 45 14		     mov eax, p1Y
+ 00000068  8A 30		     mov dh, byte PTR [eax]                  ; y 座標
+ 0000006A  2A 75 20		     sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+ 0000006D  E8 00000000 E	     call Gotoxy
+ 00000072  8B 45 08		     mov eax, color                          ;藍色板板~~
+ 00000075  E8 00000000 E	     call SetTextColor
+ 0000007A  8B 55 2C		     mov edx, spaceWithStar
+ 0000007D  E8 00000000 E	     call WriteString                        ; 畫上
+
+				     ;[ebx]開頭存著當時的y座標
+ 00000082  81 2B 00000001	     sub [ebx], dword PTR 1                  ;[ebx]-1 得新座標
+ 00000088  E9 00000130		     jmp continueN
+
+ 0000008D			MoveDownP1:
+				    ;當板子碰到下border，不給動(cont.)
+				    ; eax = p1Y , [ebx] 也存著當時的y座標!!!!
+ 0000008D  8B 5D 14		     mov ebx, p1Y
+ 00000090  8B 03			 mov eax, [ebx]
+ 00000092  40			     inc eax                                ;p1Y + 1來和最底Y座標進行比較
+ 00000093  3B 45 28			 cmp eax, playLowEdge                   ;如果Y座標大於等於Edge
+ 00000096  0F 83 00000121		 jae continueN                          ;跳去continueN, 忽略下鍵要求
+
+				     ;往下移動時，覆蓋最上面的"*",抓當時的XY座標
+				     ;因為我們是由下往上畫，所以當時的座標會是最下方
+ 0000009C  8B 45 10		     mov eax, p1X
+ 0000009F  8A 10		     mov dl, byte PTR [eax]                  ; x 座標
+ 000000A1  8B 45 14		     mov eax, p1Y
+ 000000A4  8A 30		     mov dh, byte PTR [eax]                  ; y 座標
+ 000000A6  2A 75 20		     sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+ 000000A9  80 C6 01		     add dh, byte PTR 1
+ 000000AC  E8 00000000 E	     call Gotoxy
+ 000000B1  B8 00000000		     mov eax, 0                              ; 塗上黑色
+ 000000B6  E8 00000000 E	     call SetTextColor                       
+ 000000BB  8B 55 2C		     mov edx, spaceWithStar
+ 000000BE  E8 00000000 E	     call WriteString                        ; 覆蓋最上面的*
+
+				     ;向下移動時，除了要擦去上面，也要新增下方"*"
+ 000000C3  8B 45 10		     mov eax, p1X
+ 000000C6  8A 10		     mov dl, byte PTR [eax]                  ; x 座標
+ 000000C8  8B 45 14		     mov eax, p1Y
+ 000000CB  8A 30		     mov dh, byte PTR [eax]                  ; y 座標
+ 000000CD  80 C6 01		     add dh, byte PTR 1                      ;加一高度得最低點座標
+ 000000D0  E8 00000000 E	     call Gotoxy
+ 000000D5  8B 45 08		     mov eax, color                          ; 藍色板板
+ 000000D8  E8 00000000 E	     call SetTextColor
+ 000000DD  8B 55 2C		     mov edx, spaceWithStar
+ 000000E0  E8 00000000 E	     call WriteString                        ; 畫上
+
+ 000000E5  81 03 00000001	     add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
+ 000000EB  E9 000000CD		     jmp continueN
+
+				;紅色板板有MoveUpP2, MoveDownP2兩個label
+ 000000F0			MoveUpP2:
+				    ;當板子碰到上border，不給動(cont.)
+				    ; eax = p2Y , [ebx] 存著當時的y座標!!!!
+ 000000F0  8B 5D 1C		    mov ebx, p2Y
+ 000000F3  8B 03			mov eax, [ebx]                      
+ 000000F5  2B 45 20			sub eax, [paddleHeight]				     ; y - height
+ 000000F8  3B 45 24			cmp eax, playTopEdge                     ;如果小於等於
+ 000000FB  0F 86 000000BC		jbe continueN                            ;跳continue, 忽略上鍵要求
+
+				    ;往上移動時，覆蓋最下面的"*",抓當時的XY座標
+				    ;因為我們是由下往上畫，所以當時的座標會是最下方
+ 00000101  8B 45 18		    mov eax, p2X
+ 00000104  8A 10		    mov dl, byte PTR [eax]                   ; x 座標
+ 00000106  8B 45 1C		    mov eax, p2Y
+ 00000109  8A 30		    mov dh, byte PTR [eax]                   ; y 座標
+ 0000010B  E8 00000000 E	    call Gotoxy
+ 00000110  B8 00000000		    mov eax, 0                               ; 塗上黑色
+ 00000115  E8 00000000 E	    call SetTextColor
+ 0000011A  8B 55 2C		    mov edx, spaceWithStar
+ 0000011D  E8 00000000 E	    call WriteString                         ; 覆蓋
+
+				    ;向上移動時，除了要擦去下面，也要新增上方"*"
+ 00000122  8B 45 18		    mov eax, p2X
+ 00000125  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
+ 00000127  8B 45 1C		    mov eax, p2Y
+ 0000012A  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
+ 0000012C  2A 75 20		    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+ 0000012F  E8 00000000 E	    call Gotoxy
+ 00000134  8B 45 0C		    mov eax, color2                         ; 紅色板板
+ 00000137  E8 00000000 E	    call SetTextColor
+ 0000013C  8B 55 2C		    mov edx, spaceWithStar
+ 0000013F  E8 00000000 E	    call WriteString                        ; 補*
+
+				    ;[ebx]開頭存著當時的y座標
+ 00000144  81 2B 00000001	    sub [ebx], dword PTR 1                  ;[ebx]-1 得新座標
+ 0000014A  EB 71		    jmp continueN
+
+ 0000014C			MoveDownP2:
+				    ;當板子碰到下border，不給動(cont.)
+				    ; eax = p1Y , [ebx] 也存著當時的y座標!!!!
+ 0000014C  8B 5D 1C		    mov ebx, p2Y
+ 0000014F  8B 03			mov eax, [ebx]
+ 00000151  40			    inc eax                                 ;p2Y + 1來和最底Y座標進行比較
+ 00000152  3B 45 28			cmp eax, playLowEdge                    ;如果Y座標大於等於Edge
+ 00000155  73 66			jae continueN                           ;跳去continueN, 忽略下鍵要求
+
+				    ;往下移動時，覆蓋最上面的"*",抓當時的XY座標
+				    ;因為我們是由下往上畫，所以當時的座標會是最下方
+ 00000157  8B 45 18		    mov eax, p2X
+ 0000015A  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
+ 0000015C  8B 45 1C		    mov eax, p2Y
+ 0000015F  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
+ 00000161  2A 75 20		    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+ 00000164  80 C6 01		    add dh, byte PTR 1
+ 00000167  E8 00000000 E	    call Gotoxy
+ 0000016C  B8 00000000		    mov eax, 0                              ; 塗上黑色
+ 00000171  E8 00000000 E	    call SetTextColor
+ 00000176  8B 55 2C		    mov edx, spaceWithStar
+ 00000179  E8 00000000 E	    call WriteString                        ; 補黑色*
+
+				    ;向下移動時，除了要擦去上面，也要新增下方"*"
+ 0000017E  8B 45 18		    mov eax, p2X
+ 00000181  8A 10		    mov dl, byte PTR [eax]                  ; x 座標
+ 00000183  8B 45 1C		    mov eax, p2Y
+ 00000186  8A 30		    mov dh, byte PTR [eax]                  ; y 座標
+ 00000188  80 C6 01		    add dh, byte PTR 1                      ;加一高度得最低點座標
+ 0000018B  E8 00000000 E	    call Gotoxy
+ 00000190  8B 45 0C		    mov eax, color2                         ; 紅板板
+ 00000193  E8 00000000 E	    call SetTextColor
+ 00000198  8B 55 2C		    mov edx, spaceWithStar
+ 0000019B  E8 00000000 E	    call WriteString                        ;補*
+
+ 000001A0  81 03 00000001	    add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
+ 000001A6  EB 15		    jmp continueN
+
+				; 提示操作
+ 000001A8			Hint:
+					INVOKE MessageBox, NULL, ADDR HintText,
+					  ADDR HintTitle, MB_OK
+ 000001BB  EB 00		    jmp continueN
+
+ 000001BD			continueN:
+				    
+				    mGotoxy 0,0         ;最終點設0,0
+ 000001BD  52		     1		push edx
+ 000001BE  B6 00	     1		mov  dh,0
+ 000001C0  B2 00	     1		mov  dl,0
+ 000001C2  E8 00000000 E     1		call Gotoxy
+ 000001C7  5A		     1		pop  edx
+ 000001C8  3C 68		    cmp al,"h"
+ 000001CA  74 DC		    je Hint
+ 000001CC  61			    popad
+					ret
+ 000001D1			ReadKeyBoard endp
+				end
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 04:15:34
+_ReadKeyBoard.asm					     Symbols 2 - 1
 
 
 
@@ -315,8 +439,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000035 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000FA Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000054 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000001D1 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -388,7 +512,23 @@ ReadFloat  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadFromFile . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadHex  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ReadKeyBoard . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadKeyBoard . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000001D1 Public STDCALL
+  color  . . . . . . . . . . . .	DWord	 bp + 00000008
+  color2 . . . . . . . . . . . .	DWord	 bp + 0000000C
+  p1X  . . . . . . . . . . . . .	DWord	 bp + 00000010
+  p1Y  . . . . . . . . . . . . .	DWord	 bp + 00000014
+  p2X  . . . . . . . . . . . . .	DWord	 bp + 00000018
+  p2Y  . . . . . . . . . . . . .	DWord	 bp + 0000001C
+  paddleHeight . . . . . . . . .	DWord	 bp + 00000020
+  playTopEdge  . . . . . . . . .	DWord	 bp + 00000024
+  playLowEdge  . . . . . . . . .	DWord	 bp + 00000028
+  spaceWithStar  . . . . . . . .	DWord	 bp + 0000002C
+  MoveUpP1 . . . . . . . . . . .	L Near	 0000002E _TEXT	
+  MoveDownP1 . . . . . . . . . .	L Near	 0000008D _TEXT	
+  MoveUpP2 . . . . . . . . . . .	L Near	 000000F0 _TEXT	
+  MoveDownP2 . . . . . . . . . .	L Near	 0000014C _TEXT	
+  Hint . . . . . . . . . . . . .	L Near	 000001A8 _TEXT	
+  continueN  . . . . . . . . . .	L Near	 000001BD _TEXT	
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -432,10 +572,6 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000FA Public STDCALL
-  Menu . . . . . . . . . . . . .	L Near	 00000005 _TEXT	
-  stop . . . . . . . . . . . . .	L Near	 0000000E _TEXT	
-  ppballMain . . . . . . . . . .	L Near	 00000018 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -455,12 +591,6 @@ Symbols:
 @fardata . . . . . . . . . . . .	Text   	 FLAT
 @stack . . . . . . . . . . . . .	Text   	 FLAT
 ALT_MASK . . . . . . . . . . . .	Number	 00000003h   
-BALL_COLOR . . . . . . . . . . .	Number	 000000E0h   
-BOARD_BETWEEN  . . . . . . . . .	Number	 00000019h   
-BOARD_C_LENGTH . . . . . . . . .	Number	 00000001h   
-BOARD_R_LENGTH . . . . . . . . .	Number	 00000050h   
-Ball_X . . . . . . . . . . . . .	DWord	 00000008 _DATA	
-Ball_Y . . . . . . . . . . . . .	DWord	 0000000C _DATA	
 CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h   
 CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
 CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
@@ -503,7 +633,6 @@ FILE_WRITE_DATA  . . . . . . . .	Number	 00000002h
 FOCUS_EVENT  . . . . . . . . . .	Number	 00000010h   
 FORMAT_MESSAGE_ALLOCATE_BUFFER .	Number	 00000100h   
 FORMAT_MESSAGE_FROM_SYSTEM . . .	Number	 00001000h   
-FRAME_RATE . . . . . . . . . . .	Number	 00000064h   
 FormatMessage  . . . . . . . . .	Text   	 FormatMessageA
 GENERIC_ALL  . . . . . . . . . .	Number	 10000000h   
 GENERIC_EXECUTE  . . . . . . . .	Number	 20000000h   
@@ -516,6 +645,8 @@ HEAP_GROWABLE  . . . . . . . . .	Number	 00000002h
 HEAP_NO_SERIALIZE  . . . . . . .	Number	 00000001h   
 HEAP_REALLOC_IN_PLACE_ONLY . . .	Number	 00000010h   
 HEAP_ZERO_MEMORY . . . . . . . .	Number	 00000008h   
+HintText . . . . . . . . . . . .	Byte	 0000000D _DATA	
+HintTitle  . . . . . . . . . . .	Byte	 00000000 _DATA	
 IDABORT  . . . . . . . . . . . .	Number	 00000003h   
 IDCANCEL . . . . . . . . . . . .	Number	 00000002h   
 IDCLOSE  . . . . . . . . . . . .	Number	 00000008h   
@@ -559,24 +690,13 @@ MB_USERICON  . . . . . . . . . .	Number	 00000080h
 MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h   
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
-MENU_PPBALL_COLOR  . . . . . . .	Number	 0000003Eh   
-MENU_TEXT_COLOR  . . . . . . . .	Number	 0000000Fh   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
 OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
 OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
-PADDLE_COLOR_TWO . . . . . . . .	Number	 000000CEh   
-PADDLE_COLOR . . . . . . . . . .	Number	 000000B1h   
-PLAY_BLACK_X1  . . . . . . . . .	Number	 0000000Eh   
-PLAY_BLACK_X2  . . . . . . . . .	Number	 0000006Ah   
-PLAY_BLACK_Y1  . . . . . . . . .	Number	 00000004h   
-PLAY_BLACK_Y2  . . . . . . . . .	Number	 00000004h   
-PLAY_L_EDGE_OFFSET . . . . . . .	Number	 00000014h   
-PLAY_T_EDGE_OFFSET . . . . . . .	Number	 00000005h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
-RESET_BALL_RATE  . . . . . . . .	Number	 000005DCh   
 RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
 RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
 ReadConsoleInput . . . . . . . .	Text   	 ReadConsoleInputA
@@ -591,7 +711,6 @@ SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
 TAB  . . . . . . . . . . . . . .	Number	 00000009h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
-UP_DOWN_B_COLOR  . . . . . . . .	Number	 00000070h   
 VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
 VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
 VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
@@ -676,7 +795,6 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-buffer . . . . . . . . . . . . .	Byte	 00000033 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -688,21 +806,9 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-p1X  . . . . . . . . . . . . . .	DWord	 00000018 _DATA	
-p1Y  . . . . . . . . . . . . . .	DWord	 0000001C _DATA	
-p2X  . . . . . . . . . . . . . .	DWord	 00000020 _DATA	
-p2Y  . . . . . . . . . . . . . .	DWord	 00000024 _DATA	
-paddleHeight . . . . . . . . . .	DWord	 00000028 _DATA	
-playLowEdge  . . . . . . . . . .	DWord	 00000004 _DATA	
-playTopEdge  . . . . . . . . . .	DWord	 00000000 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-space2 . . . . . . . . . . . . .	Byte	 0000002E _DATA	
-spacePaddle  . . . . . . . . . .	Byte	 00000031 _DATA	
-space  . . . . . . . . . . . . .	Byte	 0000002C _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
-xRun . . . . . . . . . . . . . .	DWord	 00000010 _DATA	
-yRise  . . . . . . . . . . . . .	DWord	 00000014 _DATA	
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings

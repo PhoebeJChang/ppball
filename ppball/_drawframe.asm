@@ -1,6 +1,9 @@
 include ppball.inc
 .data
 	ppballTitle byte " Hope You Enjoy The Game !! ",0
+	ppballHint1 byte " * * * * * * * * * * * * Press",0
+	ppballHint2 byte " 'h' ",0
+	ppballHint3 byte "to get a hint * * * * * * * * * * * * ",0
 .code
 DrawFrame proc,
     color: dword,				;灰
@@ -17,6 +20,18 @@ DrawFrame proc,
 	mov eax, black+(lightCyan*16)
 	call SetTextColor
 	mWriteString OFFSET ppballTitle
+
+	;下面小小字
+	mGotoxy 22,32
+	mov eax, cyan+(black*16)
+	call SetTextColor
+	mWriteString OFFSET ppballHint1
+	mov eax, lightGreen+(black*16)
+	call SetTextColor
+	mWriteString OFFSET ppballHint2
+	mov eax, cyan+(black*16)
+	call SetTextColor
+	mWriteString OFFSET ppballHint3
 
 	mov eax, color		;灰色
 	call SetTextColor

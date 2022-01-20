@@ -1,4 +1,9 @@
 include ppball.inc
+.data
+            
+HintTitle BYTE "遊戲操作方法",0
+HintText  BYTE "左側玩家操控WS鍵來移動Paddle；          "
+	       BYTE "右側玩家操控上下鍵來移動Paddle",0
 
 .code 
 ReadKeyBoard proc,
@@ -30,150 +35,170 @@ ReadKeyBoard proc,
 
      jmp continueN
 
+;藍色板板有MoveUpP1, MoveDownP1兩個label
 MoveUpP1: 
     ;當板子碰到上border，不給動(cont.)
-    ; eax = p1Y
+    ; eax = p1Y , [ebx] 存著當時的y座標!!!!
     mov ebx, p1Y
 	mov eax, [ebx]
 	sub eax, [paddleHeight]				; y - height
 	cmp eax, playTopEdge                ;如果小於等於
-	jbe continueN                       ;跳continue, 忽略上下鍵要求
+	jbe continueN                       ;跳continue, 忽略上鍵要求
 
-    ;往上移動時，覆蓋最下面的"*"
+    ;往上移動時，覆蓋最下面的"*",抓當時的XY座標
+    ;因為我們是由下往上畫，所以當時的座標會是最下方
      mov eax, p1X
      mov dl, byte PTR [eax]                  ; x 座標
      mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y 座標
      call Gotoxy
-     mov eax, 0                              ; black
+     mov eax, 0                              ; 塗上黑色
      call SetTextColor
      mov edx, spaceWithStar
-     call WriteString                        ; clear
+     call WriteString                        ; 覆蓋
 
-     ;向上移動時，除了要擦去面，也要新增上方"*"
+     ;向上移動時，除了要擦去下面，也要新增上方"*"
      mov eax, p1X
      mov dl, byte PTR [eax]                  ; x 座標
      mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y 座標
-     sub dh, byte PTR [paddleHeight]
+     sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
      call Gotoxy
-     mov eax, color                   ;紅色板板~~
+     mov eax, color                          ;藍色板板~~
      call SetTextColor
      mov edx, spaceWithStar
-     call WriteString                        ; draw
+     call WriteString                        ; 畫上
 
-     sub [ebx], dword PTR 1                  ;y座標-1(才是正確座標底)
+     ;[ebx]開頭存著當時的y座標
+     sub [ebx], dword PTR 1                  ;[ebx]-1 得新座標
      jmp continueN
 
 MoveDownP1:
+    ;當板子碰到下border，不給動(cont.)
+    ; eax = p1Y , [ebx] 也存著當時的y座標!!!!
      mov ebx, p1Y
-	mov eax, [ebx]
-    inc eax
-	cmp eax, playLowEdge
-	jae continueN
-	     ; skip if player1 is below or equal to room's upper border
+	 mov eax, [ebx]
+     inc eax                                ;p1Y + 1來和最底Y座標進行比較
+	 cmp eax, playLowEdge                   ;如果Y座標大於等於Edge
+	 jae continueN                          ;跳去continueN, 忽略下鍵要求
 
-          ; moved up, delete upper line
+     ;往下移動時，覆蓋最上面的"*",抓當時的XY座標
+     ;因為我們是由下往上畫，所以當時的座標會是最下方
      mov eax, p1X
      mov dl, byte PTR [eax]                  ; x 座標
      mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y 座標
-     sub dh, byte PTR [paddleHeight]
+     sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
      add dh, byte PTR 1
      call Gotoxy
-     mov eax, 0                              ; bg_color = black
-     call SetTextColor                       ; set color to black
+     mov eax, 0                              ; 塗上黑色
+     call SetTextColor                       
      mov edx, spaceWithStar
-     call WriteString                        ; clear bottom line
+     call WriteString                        ; 覆蓋最上面的*
 
-     ; moved up, create lower line.
-     add [ebx], dword PTR 1                  ; change actual coordinate in main
+     ;向下移動時，除了要擦去上面，也要新增下方"*"
      mov eax, p1X
      mov dl, byte PTR [eax]                  ; x 座標
      mov eax, p1Y
      mov dh, byte PTR [eax]                  ; y 座標
+     add dh, byte PTR 1                      ;加一高度得最低點座標
      call Gotoxy
-     mov eax, color                   ; bg_color = color
+     mov eax, color                          ; 藍色板板
      call SetTextColor
-
      mov edx, spaceWithStar
-     call WriteString                        ; create bottom line
+     call WriteString                        ; 畫上
 
+     add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
      jmp continueN
 
-MoveUpP2:                                ; eax = p2Y
-     mov ebx, p2Y
-	mov eax, [ebx]
-	sub eax, [paddleHeight]				; check with top of paddle rather than bottom.
-	cmp eax, playTopEdge
-	jbe continueN
-	     ; skip if player2 is above or equal to room's upper border
+;紅色板板有MoveUpP2, MoveDownP2兩個label
+MoveUpP2:
+    ;當板子碰到上border，不給動(cont.)
+    ; eax = p2Y , [ebx] 存著當時的y座標!!!!
+    mov ebx, p2Y
+	mov eax, [ebx]                      
+	sub eax, [paddleHeight]				     ; y - height
+	cmp eax, playTopEdge                     ;如果小於等於
+	jbe continueN                            ;跳continue, 忽略上鍵要求
 
-          ; moved up, clear bottom line
-     mov eax, p2X
-     mov dl, byte PTR [eax]                  ; x 座標
-     mov eax, p2Y
-     mov dh, byte PTR [eax]                  ; y 座標
-     call Gotoxy
-     mov eax, 0                              ; bg_color = black
-     call SetTextColor
-     mov edx, spaceWithStar
-     call WriteString                        ; clear bottom line
+    ;往上移動時，覆蓋最下面的"*",抓當時的XY座標
+    ;因為我們是由下往上畫，所以當時的座標會是最下方
+    mov eax, p2X
+    mov dl, byte PTR [eax]                   ; x 座標
+    mov eax, p2Y
+    mov dh, byte PTR [eax]                   ; y 座標
+    call Gotoxy
+    mov eax, 0                               ; 塗上黑色
+    call SetTextColor
+    mov edx, spaceWithStar
+    call WriteString                         ; 覆蓋
 
-          ; moved up, create upper line.
-     mov eax, p2X
-     mov dl, byte PTR [eax]                  ; x 座標
-     mov eax, p2Y
-     mov dh, byte PTR [eax]                  ; y 座標
-     sub dh, byte PTR [paddleHeight]
-     call Gotoxy
-     mov eax, color2                    ; bg_color = black
-     call SetTextColor
-     mov edx, spaceWithStar
-     call WriteString                        ; clear bottom line
+    ;向上移動時，除了要擦去下面，也要新增上方"*"
+    mov eax, p2X
+    mov dl, byte PTR [eax]                  ; x 座標
+    mov eax, p2Y
+    mov dh, byte PTR [eax]                  ; y 座標
+    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+    call Gotoxy
+    mov eax, color2                         ; 紅色板板
+    call SetTextColor
+    mov edx, spaceWithStar
+    call WriteString                        ; 補*
 
-     sub [ebx], dword PTR 1                  ; change actual coordinate in main
-     jmp continueN
+    ;[ebx]開頭存著當時的y座標
+    sub [ebx], dword PTR 1                  ;[ebx]-1 得新座標
+    jmp continueN
 
 MoveDownP2:
+    ;當板子碰到下border，不給動(cont.)
+    ; eax = p1Y , [ebx] 也存著當時的y座標!!!!
     mov ebx, p2Y
 	mov eax, [ebx]
-    inc eax
-	cmp eax, playLowEdge
-	jae continueN
-	     ; skip if player2 is below or equal to room's upper border
+    inc eax                                 ;p2Y + 1來和最底Y座標進行比較
+	cmp eax, playLowEdge                    ;如果Y座標大於等於Edge
+	jae continueN                           ;跳去continueN, 忽略下鍵要求
 
-          ; moved up, delete upper line
-     mov eax, p2X
-     mov dl, byte PTR [eax]                  ; x 座標
-     mov eax, p2Y
-     mov dh, byte PTR [eax]                  ; y 座標
-     sub dh, byte PTR [paddleHeight]
-     add dh, byte PTR 1
-     call Gotoxy
-     mov eax, 0                              ; bg_color = black
-     call SetTextColor                       ; set color to black
-     mov edx, spaceWithStar
-     call WriteString                        ; clear bottom line
+    ;往下移動時，覆蓋最上面的"*",抓當時的XY座標
+    ;因為我們是由下往上畫，所以當時的座標會是最下方
+    mov eax, p2X
+    mov dl, byte PTR [eax]                  ; x 座標
+    mov eax, p2Y
+    mov dh, byte PTR [eax]                  ; y 座標
+    sub dh, byte PTR [paddleHeight]         ;減去paddle高度得最高點座標
+    add dh, byte PTR 1
+    call Gotoxy
+    mov eax, 0                              ; 塗上黑色
+    call SetTextColor
+    mov edx, spaceWithStar
+    call WriteString                        ; 補黑色*
 
-          ; moved up, create lower line.
-     add [ebx], dword PTR 1                  ; change actual coordinate in main
-     ;mGotoxy p2X, p2Y
-     mov eax, p2X
-     mov dl, byte PTR [eax]                  ; x 座標
-     mov eax, p2Y
-     mov dh, byte PTR [eax]                  ; y 座標
-     call Gotoxy
-     mov eax, color2                    ; bg_color = color
-     call SetTextColor
+    ;向下移動時，除了要擦去上面，也要新增下方"*"
+    mov eax, p2X
+    mov dl, byte PTR [eax]                  ; x 座標
+    mov eax, p2Y
+    mov dh, byte PTR [eax]                  ; y 座標
+    add dh, byte PTR 1                      ;加一高度得最低點座標
+    call Gotoxy
+    mov eax, color2                         ; 紅板板
+    call SetTextColor
+    mov edx, spaceWithStar
+    call WriteString                        ;補*
 
-     mov edx, spaceWithStar
-     call WriteString                        ; create bottom line
+    add [ebx], dword PTR 1                  ;[ebx]+1 得新座標
+    jmp continueN
 
-     jmp continueN
+; 提示操作
+Hint:
+	INVOKE MessageBox, NULL, ADDR HintText,
+	  ADDR HintTitle, MB_OK
+    jmp continueN
 
 continueN:
-
+    
+    mGotoxy 0,0         ;最終點設0,0
+    cmp al,"h"
+    je Hint
+    popad
 	ret
 ReadKeyBoard endp
 end
