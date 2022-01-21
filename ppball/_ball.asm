@@ -25,7 +25,7 @@ Ball proc,
 	; 左邊範圍: 如果球跑出範圍，reset
 	mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
 	sub ebx, 5			;比邊框再進去一點點
-	cmp [eax], ebx		;如果[eax] < ebx，此時eax是ball的X座標
+	cmp [eax], ebx		;如果Ball_X < p1X，此時eax是ball的X座標
 	jb Reset
 	
 	; 右邊範圍: 如果球跑出範圍，reset
@@ -51,19 +51,6 @@ Reset:
 
 ;在range內的球，測試各邊碰撞與否	
 BangTest:
-	;ballX座標存入EAX
-    mov eax, Ball_X
-
-	;和右側玩家比較
-	mov ebx, p2X
-	cmp [eax], ebx
-	ja BallMovement
-
-	;和左側玩家比較
-	mov ebx, p1X
-	cmp [eax], ebx
-	jb BallMovement
-	
 	;比較有沒有碰到底
 	mov eax, [Ball_Y]
 	mov ebx, playTopEdgeOffset
@@ -76,7 +63,7 @@ BangTest:
 	neg dword ptr [eax]			;Y座標負數反彈
 	
 NotYetBottom:
-	;碰到底部反彈，繼續比較Y座標
+	;繼續比較Y座標
     mov eax, [Ball_Y]
 	mov ebx, playTopEdgeOffset
 	inc ebx						;ebx+1，上面border有1的厚度
@@ -158,7 +145,6 @@ BallMovement:
 	;遮掉當下的球
 	mov eax, 0				;塗黑
 	call SetTextColor
-
     ;要遮掉的座標位置
     mov eax, [Ball_X]
 	mov dl, [eax]
@@ -169,14 +155,14 @@ BallMovement:
 	call WriteString		;畫出
 
 	; 更新球的XY座標，畫新的球
-	; x
+	; X座標
 	mov eax, xMove			;2
     mov ebx, [eax]			;ebx = xMove
     mov eax, [Ball_X]		;eax = Ball_X
     add ebx, [eax]			;X當下座標加上2
 	mov [eax], ebx			;新的X座標
 	mov dl, [eax]			;Gotoxy
-	; y
+	; Y座標
 	mov eax, yMove			;1
 	mov ebx, [eax]			;1
 	mov eax, [Ball_Y]		;Y當下座標

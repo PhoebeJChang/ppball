@@ -1,19 +1,16 @@
-; (_SpeedOfBall.asm)
-
+; SpeedOfBall
 include ppball.inc
 
 .code 
 SpeedOfBall PROC,
 	timedu: dword 
 
-	; timedu - the length of time to SpeedOfBall in milliseconds
-
-    pushad		;save general-purpose register
+    pushad
 
 	mov eax, timedu
 	call Delay
 
-    popad		;restore
+    popad
 	ret
 SpeedOfBall endp
 end

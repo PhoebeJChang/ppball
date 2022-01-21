@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 22:46:27
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/22/22 01:52:08
 _ball.asm						     Page 1 - 1
 
 
@@ -128,7 +128,7 @@ _ball.asm						     Page 1 - 1
 					; 左邊範圍: 如果球跑出範圍，reset
  00000007  8B 5D 28			mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
  0000000A  83 EB 05			sub ebx, 5			;比邊框再進去一點點
- 0000000D  39 18			cmp [eax], ebx		;如果[eax] < ebx，此時eax是ball的X座標
+ 0000000D  39 18			cmp [eax], ebx		;如果Ball_X < p1X，此時eax是ball的X座標
  0000000F  72 0C			jb Reset
 					
 					; 右邊範圍: 如果球跑出範圍，reset
@@ -150,158 +150,152 @@ _ball.asm						     Page 1 - 1
 
 					;新座標傳入resset
 					invoke ResetBall, Ball_X, Ball_Y, ebx, eax, RESET_BALL_RATE
- 00000039  E9 000000E5			jmp ContinueN
+ 00000039  E9 000000CD			jmp ContinueN
 
 				;在range內的球，測試各邊碰撞與否	
  0000003E			BangTest:
-					;ballX座標存入EAX
- 0000003E  8B 45 0C		    mov eax, Ball_X
-
-					;和右側玩家比較
- 00000041  8B 5D 30			mov ebx, p2X
- 00000044  39 18			cmp [eax], ebx
- 00000046  0F 87 00000085		ja BallMovement
-
-					;和左側玩家比較
- 0000004C  8B 5D 28			mov ebx, p1X
- 0000004F  39 18			cmp [eax], ebx
- 00000051  72 7E			jb BallMovement
-					
 					;比較有沒有碰到底
- 00000053  8B 45 10			mov eax, [Ball_Y]
- 00000056  8B 5D 20			mov ebx, playTopEdgeOffset
- 00000059  03 5D 24			add ebx, boardsinBetween
- 0000005C  4B			    dec ebx						;底部的Y座標
- 0000005D  39 18			cmp [eax], ebx				;球的Y座標和底borderY座標比較
- 0000005F  72 05			jb NotYetBottom				;如果低於，跳去NotYetBottom
+ 0000003E  8B 45 10			mov eax, [Ball_Y]
+ 00000041  8B 5D 20			mov ebx, playTopEdgeOffset
+ 00000044  03 5D 24			add ebx, boardsinBetween
+ 00000047  4B			    dec ebx						;底部的Y座標
+ 00000048  39 18			cmp [eax], ebx				;球的Y座標和底borderY座標比較
+ 0000004A  72 05			jb NotYetBottom				;如果低於，跳去NotYetBottom
 					;若高於Y座標變負的，回彈
- 00000061  8B 45 18			mov eax, [yMove]
- 00000064  F7 18			neg dword ptr [eax]			;Y座標負數反彈
+ 0000004C  8B 45 18			mov eax, [yMove]
+ 0000004F  F7 18			neg dword ptr [eax]			;Y座標負數反彈
 					
- 00000066			NotYetBottom:
-					;碰到底部反彈，繼續比較Y座標
- 00000066  8B 45 10		    mov eax, [Ball_Y]
- 00000069  8B 5D 20			mov ebx, playTopEdgeOffset
- 0000006C  43				inc ebx						;ebx+1，上面border有1的厚度
- 0000006D  39 18			cmp [eax], ebx				;球的Y座標和上borderY座標比較
- 0000006F  77 05			ja NotYetTop				;高於則代表還沒飛到頂
+ 00000051			NotYetBottom:
+					;繼續比較Y座標
+ 00000051  8B 45 10		    mov eax, [Ball_Y]
+ 00000054  8B 5D 20			mov ebx, playTopEdgeOffset
+ 00000057  43				inc ebx						;ebx+1，上面border有1的厚度
+ 00000058  39 18			cmp [eax], ebx				;球的Y座標和上borderY座標比較
+ 0000005A  77 05			ja NotYetTop				;高於則代表還沒飛到頂
 					;若低於Y座標變負的，回彈往下
- 00000071  8B 45 18			mov eax, [yMove]			
- 00000074  F7 18			neg dword ptr [eax]			;往下飛
+ 0000005C  8B 45 18			mov eax, [yMove]			
+ 0000005F  F7 18			neg dword ptr [eax]			;往下飛
 					
- 00000076			NotYetTop:
+ 00000061			NotYetTop:
 					;這裡比較是否撞到右邊paddle，X座標
 					;右板子往內3小格(視覺上差異)
- 00000076  8B 45 30			mov eax, p2X
- 00000079  8B D8			mov ebx, eax
- 0000007B  83 EB 03			sub ebx,3
+ 00000061  8B 45 30			mov eax, p2X
+ 00000064  8B D8			mov ebx, eax
+ 00000066  83 EB 03			sub ebx,3
 					;球和座標比較
- 0000007E  8B 45 0C			mov eax, [Ball_X]
- 00000081  39 18			cmp [eax], ebx
- 00000083  72 1F			jb NotYetHitP2			;若小於，代表球X座標還沒飛到
+ 00000069  8B 45 0C			mov eax, [Ball_X]
+ 0000006C  39 18			cmp [eax], ebx
+ 0000006E  72 1F			jb NotYetHitP2			;若小於，代表球X座標還沒飛到
 
 					;大於，可能碰到板子了
 					;接著判斷Y座標
- 00000085  8B 45 34			mov eax, p2Y
- 00000088  8B D8			mov ebx, eax
- 0000008A  8B 45 10			mov eax, [Ball_Y]
- 0000008D  39 18			cmp [eax], ebx			;若大於，代表球Y座標還沒飛到
- 0000008F  77 13			ja NotYetHitP2			;也就是說此時球比板子還要下面
+ 00000070  8B 45 34			mov eax, p2Y
+ 00000073  8B D8			mov ebx, eax
+ 00000075  8B 45 10			mov eax, [Ball_Y]
+ 00000078  39 18			cmp [eax], ebx			;若大於，代表球Y座標還沒飛到
+ 0000007A  77 13			ja NotYetHitP2			;也就是說此時球比板子還要下面
 
 					;小於，可能碰到板子了
 					;接著判斷有沒有在板子大小範圍內
 					;由下往上數5格內才算碰到
- 00000091  8B 5D 34			mov ebx, p2Y			;板子Y座標傳入ebx
- 00000094  2B 5D 38			sub ebx, paddleHeight
- 00000097  43				inc ebx					;板子最高點座標
- 00000098  8B 45 10			mov eax, [Ball_Y]		;球Y座標EAX
- 0000009B  39 18			cmp [eax], ebx			;比較，若再小於，代表球的位置比板子高(更上方)
- 0000009D  72 05			jb NotYetHitP2			;沒碰到右板子，跳去[還沒碰到右板子]
+ 0000007C  8B 5D 34			mov ebx, p2Y			;板子Y座標傳入ebx
+ 0000007F  2B 5D 38			sub ebx, paddleHeight
+ 00000082  43				inc ebx					;板子最高點座標
+ 00000083  8B 45 10			mov eax, [Ball_Y]		;球Y座標EAX
+ 00000086  39 18			cmp [eax], ebx			;比較，若再小於，代表球的位置比板子高(更上方)
+ 00000088  72 05			jb NotYetHitP2			;沒碰到右板子，跳去[還沒碰到右板子]
 					;大於了，代表碰到右側，更改xMove
- 0000009F  8B 45 14			mov eax, [xMove]
- 000000A2  F7 18			neg dword ptr [eax]		;變負數往反方向回彈	
+ 0000008A  8B 45 14			mov eax, [xMove]
+ 0000008D  F7 18			neg dword ptr [eax]		;變負數往反方向回彈	
 
 					;以上結束所有碰到右板子的判斷
 
- 000000A4			NotYetHitP2:
+ 0000008F			NotYetHitP2:
 					;還沒碰到右板子
 					;開始比較左邊板子判定
- 000000A4  8B 5D 28			mov ebx, p1X
- 000000A7  83 C3 02		    add ebx, 2
- 000000AA  8B 45 0C			mov eax, [Ball_X]
- 000000AD  39 18			cmp [eax], ebx
- 000000AF  77 20			ja NotTouchingLeftPaddle
+ 0000008F  8B 5D 28			mov ebx, p1X			;左邊板子X座標傳入EBX
+ 00000092  83 C3 02		    add ebx, 2				;視覺上差異，EBX+2
+ 00000095  8B 45 0C			mov eax, [Ball_X]		;球的X座標傳入EAX
 
- 000000B1  8B 45 2C			mov eax, p1Y
- 000000B4  8B D8			mov ebx, eax
- 000000B6  8B 45 10			mov eax, [Ball_Y]
- 000000B9  39 18			cmp [eax], ebx
- 000000BB  77 14			ja NotTouchingLeftPaddle
-					; ball is not touching if it is above the paddle - checking that here
- 000000BD  8B 45 2C			mov eax, p1Y
- 000000C0  8B D8			mov ebx, eax
- 000000C2  2B 5D 38			sub ebx, paddleHeight
- 000000C5  8B 45 10			mov eax, [Ball_Y]
- 000000C8  39 18			cmp [eax], ebx
- 000000CA  72 05			jb NotTouchingLeftPaddle
- 000000CC  8B 45 14			mov eax, [xMove]
- 000000CF  F7 18			neg dword ptr [eax]
+					;球的X座標和板子X座標比較
+ 00000098  39 18			cmp [eax], ebx			;若大於，代表球還沒碰到左板子的可能性
+ 0000009A  77 1D			ja NotYetHitP1			;跳去還沒碰到左板子的label
+
+					;若小於，有碰到板子的可能性
+					;判斷Y座標，注意此時是板子Y座標底判斷
+ 0000009C  8B 5D 2C			mov ebx, p1Y
+ 0000009F  8B 45 10			mov eax, [Ball_Y]
+ 000000A2  39 18			cmp [eax], ebx			;比較兩者Y座標，若大於，代表球比板子還要更下方
+ 000000A4  77 13			ja NotYetHitP1			;跳去還沒碰到左板子
 					
- 000000D1			NotTouchingLeftPaddle:
+					;若小於，代表球的位置比板子底高
+					;判斷有無在板子高度內
+ 000000A6  8B 5D 2C			mov ebx, p1Y
+ 000000A9  2B 5D 38			sub ebx, paddleHeight
+ 000000AC  43				inc ebx					;板子最高點座標
+ 000000AD  8B 45 10			mov eax, [Ball_Y]
+ 000000B0  39 18			cmp [eax], ebx			;比較兩者，若小於代表此時球的高度比板子最高點還要高
+ 000000B2  72 05			jb NotYetHitP1			;沒碰到左板子
 
- 000000D1			BallMovement:
+					;碰到了，xMove改變方向
+ 000000B4  8B 45 14			mov eax, [xMove]
+ 000000B7  F7 18			neg dword ptr [eax]		;反方向飛
+
+					;以上結束所有上下左右可能性
+ 000000B9			NotYetHitP1:
+					;不需要再進行比較，直接跳去下方做球的移動和座標變化
+ 000000B9			BallMovement:
 					;遮掉當下的球
- 000000D1  B8 00000000			mov eax, 0				;塗黑
- 000000D6  E8 00000000 E		call SetTextColor
+ 000000B9  B8 00000000			mov eax, 0				;塗黑
+ 000000BE  E8 00000000 E		call SetTextColor
 
 				    ;要遮掉的座標位置
- 000000DB  8B 45 0C		    mov eax, [Ball_X]
- 000000DE  8A 10			mov dl, [eax]
- 000000E0  8B 45 10			mov eax, [Ball_Y]
- 000000E3  8A 30			mov dh, [eax]
- 000000E5  E8 00000000 E		call Gotoxy
- 000000EA  8B 55 1C			mov edx, buffer
- 000000ED  E8 00000000 E		call WriteString		;畫出
+ 000000C3  8B 45 0C		    mov eax, [Ball_X]
+ 000000C6  8A 10			mov dl, [eax]
+ 000000C8  8B 45 10			mov eax, [Ball_Y]
+ 000000CB  8A 30			mov dh, [eax]
+ 000000CD  E8 00000000 E		call Gotoxy
+ 000000D2  8B 55 1C			mov edx, buffer
+ 000000D5  E8 00000000 E		call WriteString		;畫出
 
 					; 更新球的XY座標，畫新的球
 					; x
- 000000F2  8B 45 14			mov eax, xMove			;2
- 000000F5  8B 18		    mov ebx, [eax]			;ebx = xMove
- 000000F7  8B 45 0C		    mov eax, [Ball_X]		;eax = Ball_X
- 000000FA  03 18		    add ebx, [eax]			;X當下座標加上2
- 000000FC  89 18			mov [eax], ebx			;新的X座標
- 000000FE  8A 10			mov dl, [eax]			;Gotoxy
+ 000000DA  8B 45 14			mov eax, xMove			;2
+ 000000DD  8B 18		    mov ebx, [eax]			;ebx = xMove
+ 000000DF  8B 45 0C		    mov eax, [Ball_X]		;eax = Ball_X
+ 000000E2  03 18		    add ebx, [eax]			;X當下座標加上2
+ 000000E4  89 18			mov [eax], ebx			;新的X座標
+ 000000E6  8A 10			mov dl, [eax]			;Gotoxy
 					; y
- 00000100  8B 45 18			mov eax, yMove			;1
- 00000103  8B 18			mov ebx, [eax]			;1
- 00000105  8B 45 10			mov eax, [Ball_Y]		;Y當下座標
- 00000108  03 18			add ebx, [eax]			;Y當下座標加上1
- 0000010A  89 18			mov [eax], ebx			;新的Y座標
- 0000010C  8A 30			mov dh, [eax]			;Gotoxy
+ 000000E8  8B 45 18			mov eax, yMove			;1
+ 000000EB  8B 18			mov ebx, [eax]			;1
+ 000000ED  8B 45 10			mov eax, [Ball_Y]		;Y當下座標
+ 000000F0  03 18			add ebx, [eax]			;Y當下座標加上1
+ 000000F2  89 18			mov [eax], ebx			;新的Y座標
+ 000000F4  8A 30			mov dh, [eax]			;Gotoxy
 					
 					;傳入新座標，印出新球球
- 0000010E  8B 45 08			mov eax, color			;黃色
- 00000111  E8 00000000 E		call SetTextColor
- 00000116  E8 00000000 E		call Gotoxy				;新球球座標定出
- 0000011B  8B 55 1C			mov edx, buffer
- 0000011E  E8 00000000 E		call WriteString		;印出新球球
+ 000000F6  8B 45 08			mov eax, color			;黃色
+ 000000F9  E8 00000000 E		call SetTextColor
+ 000000FE  E8 00000000 E		call Gotoxy				;新球球座標定出
+ 00000103  8B 55 1C			mov edx, buffer
+ 00000106  E8 00000000 E		call WriteString		;印出新球球
 						
- 00000123			ContinueN:
-
+ 0000010B			ContinueN:
 					mGotoxy 0,0
- 00000123  52		     1		push edx
- 00000124  B6 00	     1		mov  dh,0
- 00000126  B2 00	     1		mov  dl,0
- 00000128  E8 00000000 E     1		call Gotoxy
- 0000012D  5A		     1		pop  edx
- 0000012E  61				popad
+ 0000010B  52		     1		push edx
+ 0000010C  B6 00	     1		mov  dh,0
+ 0000010E  B2 00	     1		mov  dl,0
+ 00000110  E8 00000000 E     1		call Gotoxy
+ 00000115  5A		     1		pop  edx
+ 00000116  61				popad
 					ret
 
- 00000133			Ball endp
+ 0000011B			Ball endp
 				end
 					
 	
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 22:46:27
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/22/22 01:52:08
 _ball.asm						     Symbols 2 - 1
 
 
@@ -414,14 +408,14 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000133 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000011B Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-Ball . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000133 Public STDCALL
+Ball . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000011B Public STDCALL
   color  . . . . . . . . . . . .	DWord	 bp + 00000008
   Ball_X . . . . . . . . . . . .	DWord	 bp + 0000000C
   Ball_Y . . . . . . . . . . . .	DWord	 bp + 00000010
@@ -438,12 +432,12 @@ Ball . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000133 Public 
   RESET_BALL_RATE  . . . . . . .	DWord	 bp + 0000003C
   Reset  . . . . . . . . . . . .	L Near	 0000001D _TEXT	
   BangTest . . . . . . . . . . .	L Near	 0000003E _TEXT	
-  NotYetBottom . . . . . . . . .	L Near	 00000066 _TEXT	
-  NotYetTop  . . . . . . . . . .	L Near	 00000076 _TEXT	
-  NotYetHitP2  . . . . . . . . .	L Near	 000000A4 _TEXT	
-  NotTouchingLeftPaddle  . . . .	L Near	 000000D1 _TEXT	
-  BallMovement . . . . . . . . .	L Near	 000000D1 _TEXT	
-  ContinueN  . . . . . . . . . .	L Near	 00000123 _TEXT	
+  NotYetBottom . . . . . . . . .	L Near	 00000051 _TEXT	
+  NotYetTop  . . . . . . . . . .	L Near	 00000061 _TEXT	
+  NotYetHitP2  . . . . . . . . .	L Near	 0000008F _TEXT	
+  NotYetHitP1  . . . . . . . . .	L Near	 000000B9 _TEXT	
+  BallMovement . . . . . . . . .	L Near	 000000B9 _TEXT	
+  ContinueN  . . . . . . . . . .	L Near	 0000010B _TEXT	
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL

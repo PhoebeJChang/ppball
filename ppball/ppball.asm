@@ -21,10 +21,10 @@ PADDLE_COLOR_TWO equ yellow+(lightRed*16)        ;右paddle color
 BALL_COLOR equ black+(yellow * 16)
 
 ;球以每0.1秒速度移動
-FRAME_RATE equ 100d                          ;球跑的速度
+FRAME_RATE equ 100d           ;球跑的速度
 
 ;reset時間等待1.5秒
-RESET_BALL_RATE equ 1500d                    ;球reset 冷卻時間
+RESET_BALL_RATE equ 1500d     ;球reset
 
 
 .data
