@@ -28,9 +28,6 @@ RESET_BALL_RATE equ 1500d                    ;球reset 冷卻時間
 
 
 .data
-;ppballHeight1 dword 6
-;ppballHeight2 dword 2
-
 
 ; 上板子Y座標(5)
 playTopEdge dword (PLAY_T_EDGE_OFFSET)

@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 18:04:10
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 22:46:27
 _ball.asm						     Page 1 - 1
 
 
@@ -118,7 +118,7 @@ _ball.asm						     Page 1 - 1
 				    p2X: dword,
 				    p2Y: dword,
 					paddleHeight: dword,
-					RESET_BALL_RATE: dword
+					RESET_BALL_RATE: dword		;為了invoke reset ball
 					
 
  00000003  60				pushad
@@ -150,175 +150,158 @@ _ball.asm						     Page 1 - 1
 
 					;新座標傳入resset
 					invoke ResetBall, Ball_X, Ball_Y, ebx, eax, RESET_BALL_RATE
- 00000039  E9 00000132			jmp ContinueN
-					
- 0000003E			BangTest:
+ 00000039  E9 000000E5			jmp ContinueN
 
+				;在range內的球，測試各邊碰撞與否	
+ 0000003E			BangTest:
+					;ballX座標存入EAX
  0000003E  8B 45 0C		    mov eax, Ball_X
+
+					;和右側玩家比較
  00000041  8B 5D 30			mov ebx, p2X
  00000044  39 18			cmp [eax], ebx
- 00000046  0F 87 0000008C		ja UpdateCoords
+ 00000046  0F 87 00000085		ja BallMovement
+
+					;和左側玩家比較
  0000004C  8B 5D 28			mov ebx, p1X
  0000004F  39 18			cmp [eax], ebx
- 00000051  0F 82 00000081		jb UpdateCoords
-
- 00000057  8B 45 10			mov eax, [Ball_Y]
- 0000005A  8B 5D 20			mov ebx, playTopEdgeOffset
- 0000005D  03 5D 24			add ebx, boardsinBetween
- 00000060  4B			    dec ebx
- 00000061  39 18			cmp [eax], ebx
- 00000063  72 05			jb NotTouchingBottom
- 00000065  8B 45 18			mov eax, [yMove]
- 00000068  F7 18			neg dword ptr [eax]
+ 00000051  72 7E			jb BallMovement
 					
- 0000006A			NotTouchingBottom:
-
- 0000006A  8B 45 10		    mov eax, [Ball_Y]
- 0000006D  8B 5D 20			mov ebx, playTopEdgeOffset
- 00000070  43				inc ebx						;ebx+1
- 00000071  39 18			cmp [eax], ebx
- 00000073  77 05			ja NotTouchingTop
- 00000075  8B 45 18			mov eax, [yMove]			;往上飛
- 00000078  F7 18			neg dword ptr [eax]
+					;比較有沒有碰到底
+ 00000053  8B 45 10			mov eax, [Ball_Y]
+ 00000056  8B 5D 20			mov ebx, playTopEdgeOffset
+ 00000059  03 5D 24			add ebx, boardsinBetween
+ 0000005C  4B			    dec ebx						;底部的Y座標
+ 0000005D  39 18			cmp [eax], ebx				;球的Y座標和底borderY座標比較
+ 0000005F  72 05			jb NotYetBottom				;如果低於，跳去NotYetBottom
+					;若高於Y座標變負的，回彈
+ 00000061  8B 45 18			mov eax, [yMove]
+ 00000064  F7 18			neg dword ptr [eax]			;Y座標負數反彈
 					
- 0000007A			NotTouchingTop:
- 0000007A  8B 45 30			mov eax, p2X
- 0000007D  8B D8			mov ebx, eax
- 0000007F  83 EB 03			sub ebx,3
- 00000082  8B 45 0C			mov eax, [Ball_X]
- 00000085  39 18			cmp [eax], ebx
- 00000087  72 20			jb NotTouchingRightPaddle
-
- 00000089  8B 45 34			mov eax, p2Y
- 0000008C  8B D8			mov ebx, eax
- 0000008E  8B 45 10			mov eax, [Ball_Y]
- 00000091  39 18			cmp [eax], ebx
- 00000093  77 14			ja NotTouchingRightPaddle
-
- 00000095  8B 45 34			mov eax, p2Y
- 00000098  8B D8			mov ebx, eax
- 0000009A  2B 5D 38			sub ebx, paddleHeight
- 0000009D  8B 45 10			mov eax, [Ball_Y]
- 000000A0  39 18			cmp [eax], ebx
- 000000A2  72 05			jb NotTouchingRightPaddle
- 000000A4  8B 45 14			mov eax, [xMove]
- 000000A7  F7 18			neg dword ptr [eax]
+ 00000066			NotYetBottom:
+					;碰到底部反彈，繼續比較Y座標
+ 00000066  8B 45 10		    mov eax, [Ball_Y]
+ 00000069  8B 5D 20			mov ebx, playTopEdgeOffset
+ 0000006C  43				inc ebx						;ebx+1，上面border有1的厚度
+ 0000006D  39 18			cmp [eax], ebx				;球的Y座標和上borderY座標比較
+ 0000006F  77 05			ja NotYetTop				;高於則代表還沒飛到頂
+					;若低於Y座標變負的，回彈往下
+ 00000071  8B 45 18			mov eax, [yMove]			
+ 00000074  F7 18			neg dword ptr [eax]			;往下飛
 					
- 000000A9			NotTouchingRightPaddle:
+ 00000076			NotYetTop:
+					;這裡比較是否撞到右邊paddle，X座標
+					;右板子往內3小格(視覺上差異)
+ 00000076  8B 45 30			mov eax, p2X
+ 00000079  8B D8			mov ebx, eax
+ 0000007B  83 EB 03			sub ebx,3
+					;球和座標比較
+ 0000007E  8B 45 0C			mov eax, [Ball_X]
+ 00000081  39 18			cmp [eax], ebx
+ 00000083  72 1F			jb NotYetHitP2			;若小於，代表球X座標還沒飛到
 
- 000000A9  8B 45 28			mov eax, p1X
- 000000AC  8B D8			mov ebx, eax
- 000000AE  83 C3 02		    add ebx, 2
- 000000B1  8B 45 0C			mov eax, [Ball_X]
- 000000B4  39 18			cmp [eax], ebx
- 000000B6  77 20			ja NotTouchingLeftPaddle
+					;大於，可能碰到板子了
+					;接著判斷Y座標
+ 00000085  8B 45 34			mov eax, p2Y
+ 00000088  8B D8			mov ebx, eax
+ 0000008A  8B 45 10			mov eax, [Ball_Y]
+ 0000008D  39 18			cmp [eax], ebx			;若大於，代表球Y座標還沒飛到
+ 0000008F  77 13			ja NotYetHitP2			;也就是說此時球比板子還要下面
 
- 000000B8  8B 45 2C			mov eax, p1Y
- 000000BB  8B D8			mov ebx, eax
- 000000BD  8B 45 10			mov eax, [Ball_Y]
- 000000C0  39 18			cmp [eax], ebx
- 000000C2  77 14			ja NotTouchingLeftPaddle
+					;小於，可能碰到板子了
+					;接著判斷有沒有在板子大小範圍內
+					;由下往上數5格內才算碰到
+ 00000091  8B 5D 34			mov ebx, p2Y			;板子Y座標傳入ebx
+ 00000094  2B 5D 38			sub ebx, paddleHeight
+ 00000097  43				inc ebx					;板子最高點座標
+ 00000098  8B 45 10			mov eax, [Ball_Y]		;球Y座標EAX
+ 0000009B  39 18			cmp [eax], ebx			;比較，若再小於，代表球的位置比板子高(更上方)
+ 0000009D  72 05			jb NotYetHitP2			;沒碰到右板子，跳去[還沒碰到右板子]
+					;大於了，代表碰到右側，更改xMove
+ 0000009F  8B 45 14			mov eax, [xMove]
+ 000000A2  F7 18			neg dword ptr [eax]		;變負數往反方向回彈	
+
+					;以上結束所有碰到右板子的判斷
+
+ 000000A4			NotYetHitP2:
+					;還沒碰到右板子
+					;開始比較左邊板子判定
+ 000000A4  8B 5D 28			mov ebx, p1X
+ 000000A7  83 C3 02		    add ebx, 2
+ 000000AA  8B 45 0C			mov eax, [Ball_X]
+ 000000AD  39 18			cmp [eax], ebx
+ 000000AF  77 20			ja NotTouchingLeftPaddle
+
+ 000000B1  8B 45 2C			mov eax, p1Y
+ 000000B4  8B D8			mov ebx, eax
+ 000000B6  8B 45 10			mov eax, [Ball_Y]
+ 000000B9  39 18			cmp [eax], ebx
+ 000000BB  77 14			ja NotTouchingLeftPaddle
 					; ball is not touching if it is above the paddle - checking that here
- 000000C4  8B 45 2C			mov eax, p1Y
- 000000C7  8B D8			mov ebx, eax
- 000000C9  2B 5D 38			sub ebx, paddleHeight
- 000000CC  8B 45 10			mov eax, [Ball_Y]
- 000000CF  39 18			cmp [eax], ebx
- 000000D1  72 05			jb NotTouchingLeftPaddle
- 000000D3  8B 45 14			mov eax, [xMove]
- 000000D6  F7 18			neg dword ptr [eax]
+ 000000BD  8B 45 2C			mov eax, p1Y
+ 000000C0  8B D8			mov ebx, eax
+ 000000C2  2B 5D 38			sub ebx, paddleHeight
+ 000000C5  8B 45 10			mov eax, [Ball_Y]
+ 000000C8  39 18			cmp [eax], ebx
+ 000000CA  72 05			jb NotTouchingLeftPaddle
+ 000000CC  8B 45 14			mov eax, [xMove]
+ 000000CF  F7 18			neg dword ptr [eax]
 					
- 000000D8			NotTouchingLeftPaddle:
- 000000D8			UpdateCoords:
-					; update the x- and y-coordinates of the ball
+ 000000D1			NotTouchingLeftPaddle:
+
+ 000000D1			BallMovement:
+					;遮掉當下的球
+ 000000D1  B8 00000000			mov eax, 0				;塗黑
+ 000000D6  E8 00000000 E		call SetTextColor
+
+				    ;要遮掉的座標位置
+ 000000DB  8B 45 0C		    mov eax, [Ball_X]
+ 000000DE  8A 10			mov dl, [eax]
+ 000000E0  8B 45 10			mov eax, [Ball_Y]
+ 000000E3  8A 30			mov dh, [eax]
+ 000000E5  E8 00000000 E		call Gotoxy
+ 000000EA  8B 55 1C			mov edx, buffer
+ 000000ED  E8 00000000 E		call WriteString		;畫出
+
+					; 更新球的XY座標，畫新的球
 					; x
- 000000D8  8B 45 14			mov eax, [xMove]
- 000000DB  8B 18		    mov ebx, [eax]
- 000000DD  8B 45 0C		    mov eax, [Ball_X]
- 000000E0  03 18		    add ebx, [eax]
- 000000E2  89 18			mov [eax], ebx
+ 000000F2  8B 45 14			mov eax, xMove			;2
+ 000000F5  8B 18		    mov ebx, [eax]			;ebx = xMove
+ 000000F7  8B 45 0C		    mov eax, [Ball_X]		;eax = Ball_X
+ 000000FA  03 18		    add ebx, [eax]			;X當下座標加上2
+ 000000FC  89 18			mov [eax], ebx			;新的X座標
+ 000000FE  8A 10			mov dl, [eax]			;Gotoxy
 					; y
- 000000E4  8B 45 18			mov eax, [yMove]
- 000000E7  8B 18			mov ebx, [eax]
- 000000E9  8B 45 10			mov eax, [Ball_Y]
- 000000EC  03 18			add ebx, [eax]
- 000000EE  89 18			mov [eax], ebx
+ 00000100  8B 45 18			mov eax, yMove			;1
+ 00000103  8B 18			mov ebx, [eax]			;1
+ 00000105  8B 45 10			mov eax, [Ball_Y]		;Y當下座標
+ 00000108  03 18			add ebx, [eax]			;Y當下座標加上1
+ 0000010A  89 18			mov [eax], ebx			;新的Y座標
+ 0000010C  8A 30			mov dh, [eax]			;Gotoxy
 					
-					; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
- 000000F0  8B 5D 0C			mov ebx, [Ball_X]
- 000000F3  8A 13			mov dl, byte ptr [ebx]
- 000000F5  8B 5D 10			mov ebx, [Ball_Y]
- 000000F8  8A 33			mov dh, byte ptr [ebx]
- 000000FA  E8 00000000 E		call Gotoxy
-					
-					; change the fill color to white to represent the ball with a white-filled space
- 000000FF  8B 45 08			mov eax, color
- 00000102  E8 00000000 E		call SetTextColor
-					
-					; print a space character to print the ball as a white space
- 00000107  8B 55 1C			mov edx, buffer
- 0000010A  E8 00000000 E		call WriteString
-					
-					; now set the text background color back to black like a friEndit
- 0000010F  B8 00000000			mov eax, black * 16
- 00000114  E8 00000000 E		call SetTextColor
+					;傳入新座標，印出新球球
+ 0000010E  8B 45 08			mov eax, color			;黃色
+ 00000111  E8 00000000 E		call SetTextColor
+ 00000116  E8 00000000 E		call Gotoxy				;新球球座標定出
+ 0000011B  8B 55 1C			mov edx, buffer
+ 0000011E  E8 00000000 E		call WriteString		;印出新球球
+						
+ 00000123			ContinueN:
 
-				    ; now erase the ball's shadow from its previous location
-				    ; go to the ball's previous position
-					; set x-coordinate back to its original value
- 00000119  8B 45 0C		    mov eax, [Ball_X]
- 0000011C  8B 18		    mov ebx, [eax]
- 0000011E  8B 45 14		    mov eax, [xMove]
- 00000121  2B 18			sub ebx, [eax]
-				    ; now store the (original) x-coordinate value in Ball_X
- 00000123  8B 45 0C		    mov eax, [Ball_X]
- 00000126  89 18		    mov [eax], ebx
-
-					; set y-coordinate back to its original value
- 00000128  8B 45 10		    mov eax, [Ball_Y]
- 0000012B  8B 18			mov ebx, [eax]
- 0000012D  8B 45 18			mov eax, [yMove]
- 00000130  2B 18			sub ebx, [eax]
- 00000132  8B 45 10			mov eax, [Ball_Y]
- 00000135  89 18		    mov [eax], ebx
-
-				    ; Gotoxy moves the cursor to the point whose x-value is in dl and whose y-value is in dh
- 00000137  8B 5D 0C		    mov ebx, [Ball_X]
- 0000013A  8A 13			mov dl, [ebx]
- 0000013C  8B 5D 10			mov ebx, [Ball_Y]
- 0000013F  8A 33			mov dh, [ebx]
- 00000141  E8 00000000 E		call Gotoxy
-					
-					; now print a space with a black background to remove the ball's shadow
- 00000146  8B 55 1C			mov edx, buffer
- 00000149  E8 00000000 E		call WriteString
-					
-					; now re-update Ball_X and Ball_Y with their new values
-					; x
- 0000014E  8B 45 14			mov eax, [xMove]
- 00000151  8B 18		    mov ebx, [eax]
- 00000153  8B 45 0C		    mov eax, [Ball_X]
- 00000156  03 18		    add ebx, [eax]
- 00000158  89 18			mov [eax], ebx
-					; y
- 0000015A  8B 45 18			mov eax, [yMove]
- 0000015D  8B 18			mov ebx, [eax]
- 0000015F  8B 45 10			mov eax, [Ball_Y]
- 00000162  03 18			add ebx, [eax]
- 00000164  89 18			mov [eax], ebx
-					
-				    ; move the cursor back to 0 to get it out of the gamespace
- 00000166  BA 00000000		    mov edx, 0
- 0000016B  E8 00000000 E	    call Gotoxy
- 00000170			ContinueN:
- 00000170  61				popad
+					mGotoxy 0,0
+ 00000123  52		     1		push edx
+ 00000124  B6 00	     1		mov  dh,0
+ 00000126  B2 00	     1		mov  dl,0
+ 00000128  E8 00000000 E     1		call Gotoxy
+ 0000012D  5A		     1		pop  edx
+ 0000012E  61				popad
 					ret
 
- 00000175			Ball endp
+ 00000133			Ball endp
 				end
 					
 	
-Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 18:04:10
+Microsoft (R) Macro Assembler Version 14.29.30136.0	    01/21/22 22:46:27
 _ball.asm						     Symbols 2 - 1
 
 
@@ -431,14 +414,14 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000175 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000133 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-Ball . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000175 Public STDCALL
+Ball . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000133 Public STDCALL
   color  . . . . . . . . . . . .	DWord	 bp + 00000008
   Ball_X . . . . . . . . . . . .	DWord	 bp + 0000000C
   Ball_Y . . . . . . . . . . . .	DWord	 bp + 00000010
@@ -455,12 +438,12 @@ Ball . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000175 Public 
   RESET_BALL_RATE  . . . . . . .	DWord	 bp + 0000003C
   Reset  . . . . . . . . . . . .	L Near	 0000001D _TEXT	
   BangTest . . . . . . . . . . .	L Near	 0000003E _TEXT	
-  NotTouchingBottom  . . . . . .	L Near	 0000006A _TEXT	
-  NotTouchingTop . . . . . . . .	L Near	 0000007A _TEXT	
-  NotTouchingRightPaddle . . . .	L Near	 000000A9 _TEXT	
-  NotTouchingLeftPaddle  . . . .	L Near	 000000D8 _TEXT	
-  UpdateCoords . . . . . . . . .	L Near	 000000D8 _TEXT	
-  ContinueN  . . . . . . . . . .	L Near	 00000170 _TEXT	
+  NotYetBottom . . . . . . . . .	L Near	 00000066 _TEXT	
+  NotYetTop  . . . . . . . . . .	L Near	 00000076 _TEXT	
+  NotYetHitP2  . . . . . . . . .	L Near	 000000A4 _TEXT	
+  NotTouchingLeftPaddle  . . . .	L Near	 000000D1 _TEXT	
+  BallMovement . . . . . . . . .	L Near	 000000D1 _TEXT	
+  ContinueN  . . . . . . . . . .	L Near	 00000123 _TEXT	
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
