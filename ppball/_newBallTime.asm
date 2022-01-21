@@ -1,19 +1,17 @@
-; (_newBallTime.asm)
-
 include ppball.inc
 
 .code 
 NewBallTime PROC,
 	revive: dword 
 
-    pushad		;save general-purpose register
+    pushad	
 
 	mov eax, revive
 	call Delay
 
-    popad		;restore
+    popad
 	ret
 NewBallTime endp
 end
 
-;text 5.2.1
+;ªþµù 5.2.1(½Ò¥»)

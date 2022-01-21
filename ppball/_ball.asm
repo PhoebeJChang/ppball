@@ -2,11 +2,11 @@ include ppball.inc
 
 .code
 Ball proc,
-	Ball_X: ptr dword,			;x coordinate of the ball 
-	Ball_Y: ptr dword,			;y coordinate of the ball
-    color: dword,				;BALL_COLOR : black+(yellow * 16)
-	xRun: ptr dword,			;球在跑的時候x移動 dword 2
-	yRise: ptr dword,			;球在跑的時候y移動 dword 1
+	color: dword,				;BALL_COLOR : black+(yellow * 16)
+	Ball_X: ptr dword,			;球的X座標
+	Ball_Y: ptr dword,			;球的Y座標
+	xMove: ptr dword,			;球在跑的時候x移動 dword 2
+	yMove: ptr dword,			;球在跑的時候y移動 dword 1
 	buffer: ptr byte,			;球笑臉(不見了QAQ)
 	playTopEdgeOffset: dword,
 	boardsinBetween: dword,
@@ -22,6 +22,12 @@ Ball proc,
 	
 	mov eax, Ball_X		;球的X座標
 
+	; 左邊範圍: 如果球跑出範圍，reset
+	mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
+	sub ebx, 5			;比邊框再進去一點點
+	cmp [eax], ebx		;如果[eax] < ebx，此時eax是ball的X座標
+	jb Reset
+	
 	; 右邊範圍: 如果球跑出範圍，reset
 	mov ebx, p2X		;在player 2 的X座標就是右邊邊框範圍
 	add ebx, 5			;比邊框再出來一點點~
@@ -29,21 +35,18 @@ Ball proc,
 	ja Reset			;如果超過則跳去reset
 	;player1 分數此時要加一 inc p1+1!!!
 
-	; 左邊範圍
-	mov ebx, p1X		;在player 1 的X座標就是右邊邊框範圍
-	sub ebx, 5			;比邊框再進去一點點
-	cmp [eax], ebx		;如果[eax] > ebx，此時eax是ball的X座標
-
-	ja BangTest
+	jb BangTest
 	;player2 分數此時要加一 inc p2+1!!!
 
 Reset:
-	;球起始點設定
-	mov eax, playTopEdgeOffset
-	add eax, 10
-	mov ebx, p1X
-	add ebx, 40
-	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, xRun, yRise, RESET_BALL_RATE
+	;球起始點設定，大概從中間的位置(20+40,5+12)
+	mov eax, playTopEdgeOffset	;從上邊框往下
+	add eax, 12					;=17
+	mov ebx, p1X				;從左邊板子數過來
+	add ebx, 40					;=60
+
+	;新座標傳入resset
+	invoke ResetBall, Ball_X, Ball_Y, ebx, eax, RESET_BALL_RATE
 	jmp ContinueN
 	
 BangTest:
@@ -62,7 +65,7 @@ BangTest:
     dec ebx
 	cmp [eax], ebx
 	jb NotTouchingBottom
-	mov eax, [yRise]
+	mov eax, [yMove]
 	neg dword ptr [eax]
 	
 NotTouchingBottom:
@@ -72,7 +75,7 @@ NotTouchingBottom:
 	inc ebx						;ebx+1
 	cmp [eax], ebx
 	ja NotTouchingTop
-	mov eax, [yRise]			;往上飛
+	mov eax, [yMove]			;往上飛
 	neg dword ptr [eax]
 	
 NotTouchingTop:
@@ -95,7 +98,7 @@ NotTouchingTop:
 	mov eax, [Ball_Y]
 	cmp [eax], ebx
 	jb NotTouchingRightPaddle
-	mov eax, [xRun]
+	mov eax, [xMove]
 	neg dword ptr [eax]
 	
 NotTouchingRightPaddle:
@@ -119,20 +122,20 @@ NotTouchingRightPaddle:
 	mov eax, [Ball_Y]
 	cmp [eax], ebx
 	jb NotTouchingLeftPaddle
-	mov eax, [xRun]
+	mov eax, [xMove]
 	neg dword ptr [eax]
 	
 NotTouchingLeftPaddle:
 UpdateCoords:
 	; update the x- and y-coordinates of the ball
 	; x
-	mov eax, [xRun]
+	mov eax, [xMove]
     mov ebx, [eax]
     mov eax, [Ball_X]
     add ebx, [eax]
 	mov [eax], ebx
 	; y
-	mov eax, [yRise]
+	mov eax, [yMove]
 	mov ebx, [eax]
 	mov eax, [Ball_Y]
 	add ebx, [eax]
@@ -162,7 +165,7 @@ UpdateCoords:
 	; set x-coordinate back to its original value
     mov eax, [Ball_X]
     mov ebx, [eax]
-    mov eax, [xRun]
+    mov eax, [xMove]
 	sub ebx, [eax]
     ; now store the (original) x-coordinate value in Ball_X
     mov eax, [Ball_X]
@@ -171,7 +174,7 @@ UpdateCoords:
 	; set y-coordinate back to its original value
     mov eax, [Ball_Y]
 	mov ebx, [eax]
-	mov eax, [yRise]
+	mov eax, [yMove]
 	sub ebx, [eax]
 	mov eax, [Ball_Y]
     mov [eax], ebx
@@ -189,13 +192,13 @@ UpdateCoords:
 	
 	; now re-update Ball_X and Ball_Y with their new values
 	; x
-	mov eax, [xRun]
+	mov eax, [xMove]
     mov ebx, [eax]
     mov eax, [Ball_X]
     add ebx, [eax]
 	mov [eax], ebx
 	; y
-	mov eax, [yRise]
+	mov eax, [yMove]
 	mov ebx, [eax]
 	mov eax, [Ball_Y]
 	add ebx, [eax]

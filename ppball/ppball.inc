@@ -44,15 +44,15 @@ DrawBall proto,
      color: dword,
      Ball_X: ptr dword,
      Ball_Y: ptr dword,
-     xRun: ptr dword,
-	yRise: ptr dword
+     xMove: ptr dword,
+	 yMove: ptr dword
 
  Ball proto,
-    Ball_X: ptr dword,			;球X座標
+	color: dword,				;BALL_COLOR   
+	Ball_X: ptr dword,			;球X座標
     Ball_Y: ptr dword,			;球Y座標
-    color: dword,				;BALL_COLOR
-    xRun: ptr dword,
-	yRise: ptr dword,
+    xMove: ptr dword,
+	yMove: ptr dword,
 	space: ptr byte,
 	playTopEdgeOffset: dword,
 	boardsinBetween: dword,
@@ -68,8 +68,6 @@ ResetBall proto,
 	Ball_Y: ptr dword,
 	newBall_X: dword,
 	newBall_Y: dword,
-	xRun: ptr dword,
-	yRise: ptr dword,
 	RESET_BALL_RATE: ptr dword
  
 SpeedOfBall proto,

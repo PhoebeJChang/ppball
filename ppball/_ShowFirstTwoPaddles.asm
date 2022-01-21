@@ -44,7 +44,7 @@ BlackBoardLeft:
 
      ; 右黑board初始
      pushad 
-     ;(106,4)起始 長28
+     ;(104,4)起始 長28
      mov ebx, blackX2
      mov dl, bl
      mov eax, blackY2

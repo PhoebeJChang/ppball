@@ -10,7 +10,7 @@ BOARD_BETWEEN equ 25d                       ;板子間距離
 ;新增左右兩側看不到的黑色boards
 PLAY_BLACK_X1 equ 14d                  
 PLAY_BLACK_Y1 equ 4d
-PLAY_BLACK_X2 equ 106d                  
+PLAY_BLACK_X2 equ 104d                  
 PLAY_BLACK_Y2 equ 4d
 
 MENU_PPBALL_COLOR equ yellow + (cyan*16)         ;menu PPBALL
@@ -20,7 +20,10 @@ PADDLE_COLOR equ blue+(lightCyan * 16)           ;左paddle color
 PADDLE_COLOR_TWO equ yellow+(lightRed*16)        ;右paddle color
 BALL_COLOR equ black+(yellow * 16)
 
+;球以每0.1秒速度移動
 FRAME_RATE equ 100d                          ;球跑的速度
+
+;reset時間等待1.5秒
 RESET_BALL_RATE equ 1500d                    ;球reset 冷卻時間
 
 
@@ -29,15 +32,19 @@ RESET_BALL_RATE equ 1500d                    ;球reset 冷卻時間
 ;ppballHeight2 dword 2
 
 
-; for passing into prototypes
+; 上板子Y座標(5)
 playTopEdge dword (PLAY_T_EDGE_OFFSET)
+; 下板子Y座標(5+25)
 playLowEdge dword (PLAY_T_EDGE_OFFSET + BOARD_BETWEEN)
 
-; ball and paddle tracking
-Ball_X dword PLAY_L_EDGE_OFFSET + 30
-Ball_Y dword PLAY_T_EDGE_OFFSET + 15
-xRun dword 2              ;
-yRise dword 1
+;球的起始座標，X = 20+40，Y = 5+12
+Ball_X dword (PLAY_L_EDGE_OFFSET + 40)
+Ball_Y dword (PLAY_T_EDGE_OFFSET + 12)
+
+;球移動45度角，因為球為兩個空白鍵所組成
+;X座標移動需要設為2，而非1
+xMove dword 2
+yMove dword 1
 
 ;paddle 起始座標
 ;左側player1
@@ -54,7 +61,7 @@ paddleHeight dword 5d       ;paddle長
 space byte " ", 0
 space2 byte "  ", 0
 spacePaddle byte "*", 0
-buffer byte "  "            ;球球實心笑臉
+buffer byte "  "            ;球球實心笑臉，沒了QAQ
 
 ; gui information 玩家計分
 ;p1scoreString byte "Player 1 score:", 0
@@ -86,7 +93,7 @@ ppballMain:
                           paddleHeight, playTopEdge, playLowEdge, addr spacePaddle
      
      ;球的
-     invoke Ball, addr Ball_X, addr Ball_Y, BALL_COLOR, addr xRun, addr yRise, addr buffer, PLAY_T_EDGE_OFFSET, 
+     invoke Ball, BALL_COLOR, addr Ball_X, addr Ball_Y, addr xMove, addr yMove, addr buffer, PLAY_T_EDGE_OFFSET, 
                         BOARD_BETWEEN, p1X, p1Y, p2X, p2Y, paddleHeight, RESET_BALL_RATE
      
      invoke SpeedOfBall, FRAME_RATE
