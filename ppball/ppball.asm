@@ -60,11 +60,6 @@ space2 byte "  ", 0
 spacePaddle byte "*", 0
 buffer byte "  "            ;球球實心笑臉，沒了QAQ
 
-; gui information 玩家計分
-;p1scoreString byte "Player 1 score:", 0
-;p2scoreString byte "Player 2 score:", 0
-;p1score dword 0
-;p2score dword 0
 
 .code
 main proc
@@ -81,7 +76,8 @@ stop:
 ppballMain:
      
      ;上下板子
-     invoke DrawFrame, UP_DOWN_B_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
+     invoke DrawFrame, UP_DOWN_B_COLOR, PLAY_T_EDGE_OFFSET, PLAY_L_EDGE_OFFSET, 
+                       BOARD_R_LENGTH, BOARD_BETWEEN, BOARD_C_LENGTH, addr space
      
      ;玩家paddle初始和移動
      invoke ShowFirstTwoPaddles, PADDLE_COLOR, PADDLE_COLOR_TWO, PLAY_BLACK_X1, PLAY_BLACK_Y1, PLAY_BLACK_X2, PLAY_BLACK_Y2, 
@@ -97,7 +93,6 @@ ppballMain:
 
      
 	jmp ppballMain
-	
 	
      exit
 main endp
