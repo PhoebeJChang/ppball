@@ -6,6 +6,8 @@
 ## Screenshots
 <img src="demo/ppball01.png" width="70%"/>
 <img src="demo/ppball02.png" width="70%"/>
-#### project report 
+
+
+## Project report (Chinese Ver.)
 [Click me](pdfs_tmp/assembely_Final_Report.pdf)
 
