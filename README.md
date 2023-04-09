@@ -2,5 +2,5 @@
 
 
 #### project report 
-[Click me](#pdfs_tmp/assembely_Final_Report.pdf)
+[Click me](pdfs_tmp/assembely_Final_Report.pdf)
 
