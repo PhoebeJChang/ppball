@@ -4,7 +4,8 @@
 ![Demo](demo/ppball_demo.mp4)
 
 ## Screenshots
-<img src="images/e05_pic.jpg" width="40%"/>
+<img src="demo/ppball01.png" width="70%"/>
+<img src="demo/ppball02.png" width="70%"/>
 #### project report 
 [Click me](pdfs_tmp/assembely_Final_Report.pdf)
 
