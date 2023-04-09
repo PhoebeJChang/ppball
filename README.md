@@ -2,4 +2,5 @@
 
 
 #### project report 
-<a href="pdfs_tmp/assembely_Final_Report.pdf" class="image fit"><p>project report </p></a>
+[Click me](#pdfs_tmp/assembely_Final_Report.pdf)
+
