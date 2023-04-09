@@ -1,7 +1,7 @@
 # Ping Pong Ball Assembly Term Project
 
 ## Demo Video
-![Demo](demo/ppball_demo.mp4)
+![Demo](demo/ppball_demo.gif)
 
 ## Screenshots
 <img src="demo/ppball01.png" width="70%"/>
