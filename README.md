@@ -1,5 +1,5 @@
 # Ping Pong Ball Assembly Term Project
-This is a term project made with X86 Assembly.
+This is a term project made with X86 Assembly Language.
 
 ## Demo Video
 ![Demo](demo/ppball_demo.gif)
